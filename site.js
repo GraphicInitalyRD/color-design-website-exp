@@ -81,7 +81,7 @@
           '</div>' +
         '</div>' +
         menuLink('color-chart','color-chart.html','Color Chart',active) +
-        menuLink('brochures','#','Brochures',active) +
+        menuLink('brochures','brochures.html','Brochures',active) +
         menuLink('sds','#','SDS Files',active) +
         menuLink('distributors','#','Distributors',active) +
       '</nav>';

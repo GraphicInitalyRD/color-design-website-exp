@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brochures - Color Design</title>
+<link rel="stylesheet" href="site.css">
+<style>
+  /* ===== pagina Brochures: parentesi come la home + link ai PDF al centro ===== */
+  .hero{ position:relative; width:100%; aspect-ratio:390 / 205.2; background:var(--hero-bg); overflow:hidden; }
+  .crescents{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+
+  /* i tre nomi dei PDF, incolonnati e centrati nella "lente" fra le parentesi */
+  .brochure-links{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:13px; text-align:center; padding:0 15%;
+  }
+  .brochure-links a{
+    color:var(--text-white); text-decoration:none;
+    font-size:12px; letter-spacing:.3px; line-height:1.25;
+    display:block; max-width:100%;
+    transition:opacity .15s ease;
+  }
+  .brochure-links a:hover{ text-decoration:underline; }
+  .brochure-links .dl{ font-size:11px; opacity:.85; margin-left:4px; }
+  .brochure-links .lang{ font-size:8px; letter-spacing:2px; text-transform:uppercase; opacity:.65; display:block; margin-bottom:2px; }
+</style>
+</head>
+<body>
+  <div class="page">
+
+    <div id="site-header" data-title="DOWNLOAD OUR BROCHURES" data-active="brochures"></div>
+
+    <section class="hero">
+      <svg class="crescents" viewBox="0 32.6 390 205.235" preserveAspectRatio="none">
+        <path fill="var(--lens-white)" d="M 87.203125 42.980469 L 93.359375 32.613281 L 38.148438 32.613281 C 24.84375 57.683594 16.410156 83.589844 13.042969 109.785156 C 9.9375 133.90625 11.117188 158.234375 16.542969 182.09375 C 22.214844 207.054688 31.433594 226.351562 37.90625 237.808594 L 96.445312 237.808594 L 85.648438 224.507812 C 84.871094 223.484375 70.125 203.78125 63.007812 172.269531 C 58.808594 153.667969 58.035156 134.539062 60.707031 115.40625 C 64.078125 91.273438 72.992188 66.90625 87.203125 42.980469"/>
+        <path fill="var(--lens-white)" d="M 297.542969 42.980469 L 291.386719 32.613281 L 346.597656 32.613281 C 359.902344 57.683594 368.335938 83.589844 371.703125 109.785156 C 374.804688 133.90625 373.628906 158.234375 368.203125 182.09375 C 362.527344 207.054688 353.308594 226.351562 346.835938 237.808594 L 288.300781 237.808594 L 299.09375 224.507812 C 299.875 223.484375 314.621094 203.78125 321.734375 172.269531 C 325.933594 153.667969 326.710938 134.539062 324.039062 115.40625 C 320.667969 91.273438 311.753906 66.90625 297.542969 42.980469"/>
+      </svg>
+      <div class="brochure-links">
+        <a href="colordesign-brochure-eng.pdf" download><span class="lang">English</span>COLORDESIGN Products Presentation<span class="dl">&#8681;</span></a>
+        <a href="colordesign-brochure-ita.pdf" download><span class="lang">Italiano</span>COLORDESIGN Presentazione Prodotti<span class="dl">&#8681;</span></a>
+        <a href="colordesign-brochure-esp.pdf" download><span class="lang">Espa&#241;ol</span>COLORDESIGN Presentaci&#243;n del Producto<span class="dl">&#8681;</span></a>
+      </div>
+    </section>
+
+    <div id="site-footer"></div>
+
+  </div>
+
+  <script src="site.js"></script>
+</body>
+</html>
