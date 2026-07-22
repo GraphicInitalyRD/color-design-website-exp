@@ -73,7 +73,7 @@
           '<div class="submenu" id="productsSub">' +
             '<a href="hair-color-cream.html">Hair Color Cream</a>' +
             '<a href="#peroxides-activators">Peroxides &amp; Activators</a>' +
-            '<a href="#shampoo">Shampoo</a>' +
+            '<a href="shampoo.html">Shampoo</a>' +
             '<a href="#bleach">Bleach</a>' +
             '<a href="#reconstruction-line">Reconstruction Line</a>' +
             '<a href="#styling-treatments">Styling Treatments</a>' +
