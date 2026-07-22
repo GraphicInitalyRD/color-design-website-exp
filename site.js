@@ -71,12 +71,11 @@
         '<div class="menu-group">' +
           '<button class="menu-toggle" id="productsToggle" type="button" aria-expanded="false"><span>Products</span><span class="caret">&#9662;</span></button>' +
           '<div class="submenu" id="productsSub">' +
-            '<a href="#hair-color-creams">Hair Color Creams</a>' +
+            '<a href="#hair-color-cream">Hair Color Cream</a>' +
             '<a href="#peroxides-activators">Peroxides &amp; Activators</a>' +
-            '<a href="#artic-blond-shampoo">Artic Blond Shampoo</a>' +
-            '<a href="#shiny-blond-cream">Shiny Blond Cream</a>' +
-            '<a href="#bleaching-powders">Bleaching Powders</a>' +
-            '<a href="#products-of-reconstruction">Products of Reconstruction</a>' +
+            '<a href="#shampoo">Shampoo</a>' +
+            '<a href="#bleach">Bleach</a>' +
+            '<a href="#reconstruction-line">Reconstruction Line</a>' +
             '<a href="#styling-treatments">Styling Treatments</a>' +
           '</div>' +
         '</div>' +
