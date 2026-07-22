@@ -71,7 +71,7 @@
         '<div class="menu-group">' +
           '<button class="menu-toggle" id="productsToggle" type="button" aria-expanded="false"><span>Products</span><span class="caret">&#9662;</span></button>' +
           '<div class="submenu" id="productsSub">' +
-            '<a href="#hair-color-cream">Hair Color Cream</a>' +
+            '<a href="hair-color-cream.html">Hair Color Cream</a>' +
             '<a href="#peroxides-activators">Peroxides &amp; Activators</a>' +
             '<a href="#shampoo">Shampoo</a>' +
             '<a href="#bleach">Bleach</a>' +
