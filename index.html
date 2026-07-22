@@ -33,6 +33,14 @@
 /* logo vettoriale ESATTO dal PDF: centrale e fisso, sopra le immagini */
   .hero-logo{ position:absolute; left:50%; bottom:3.4%; width:34%; transform:translateX(-50%); pointer-events:none; }
 .hero-logo .brand-logo{ display:block; width:100%; height:auto; filter:drop-shadow(0 1px 5px rgba(0,0,0,.35)); }
+  /* ===== animazione sincronizzata col cambio immagine del carosello ===== */
+  .crescents .cres-l, .crescents .cres-r{ transform-box: fill-box; }
+  .hero.pulse .cres-l{ animation: cresL .85s ease; }
+  .hero.pulse .cres-r{ animation: cresR .85s ease; }
+  .hero.pulse .brand-logo{ animation: logoPulse .85s ease; }
+  @keyframes cresL{ 0%,100%{ transform:translateX(0); } 45%{ transform:translateX(-13px); } }
+  @keyframes cresR{ 0%,100%{ transform:translateX(0); } 45%{ transform:translateX(13px); } }
+  @keyframes logoPulse{ 0%,100%{ transform:scale(1); } 45%{ transform:scale(1.4); } }
 </style>
 </head>
 <body>
@@ -49,8 +57,8 @@
 
       <!-- parentesi bianche: path vettoriali estratti ESATTI dal tuo PDF -->
       <svg class="crescents" viewBox="0 32.6 390 205.235" preserveAspectRatio="none">
-        <path fill="var(--lens-white)" d="M 87.203125 42.980469 L 93.359375 32.613281 L 38.148438 32.613281 C 24.84375 57.683594 16.410156 83.589844 13.042969 109.785156 C 9.9375 133.90625 11.117188 158.234375 16.542969 182.09375 C 22.214844 207.054688 31.433594 226.351562 37.90625 237.808594 L 96.445312 237.808594 L 85.648438 224.507812 C 84.871094 223.484375 70.125 203.78125 63.007812 172.269531 C 58.808594 153.667969 58.035156 134.539062 60.707031 115.40625 C 64.078125 91.273438 72.992188 66.90625 87.203125 42.980469"/>
-        <path fill="var(--lens-white)" d="M 297.542969 42.980469 L 291.386719 32.613281 L 346.597656 32.613281 C 359.902344 57.683594 368.335938 83.589844 371.703125 109.785156 C 374.804688 133.90625 373.628906 158.234375 368.203125 182.09375 C 362.527344 207.054688 353.308594 226.351562 346.835938 237.808594 L 288.300781 237.808594 L 299.09375 224.507812 C 299.875 223.484375 314.621094 203.78125 321.734375 172.269531 C 325.933594 153.667969 326.710938 134.539062 324.039062 115.40625 C 320.667969 91.273438 311.753906 66.90625 297.542969 42.980469"/>
+        <path class="cres-l" fill="var(--lens-white)" d="M 87.203125 42.980469 L 93.359375 32.613281 L 38.148438 32.613281 C 24.84375 57.683594 16.410156 83.589844 13.042969 109.785156 C 9.9375 133.90625 11.117188 158.234375 16.542969 182.09375 C 22.214844 207.054688 31.433594 226.351562 37.90625 237.808594 L 96.445312 237.808594 L 85.648438 224.507812 C 84.871094 223.484375 70.125 203.78125 63.007812 172.269531 C 58.808594 153.667969 58.035156 134.539062 60.707031 115.40625 C 64.078125 91.273438 72.992188 66.90625 87.203125 42.980469"/>
+        <path class="cres-r" fill="var(--lens-white)" d="M 297.542969 42.980469 L 291.386719 32.613281 L 346.597656 32.613281 C 359.902344 57.683594 368.335938 83.589844 371.703125 109.785156 C 374.804688 133.90625 373.628906 158.234375 368.203125 182.09375 C 362.527344 207.054688 353.308594 226.351562 346.835938 237.808594 L 288.300781 237.808594 L 299.09375 224.507812 C 299.875 223.484375 314.621094 203.78125 321.734375 172.269531 C 325.933594 153.667969 326.710938 134.539062 324.039062 115.40625 C 320.667969 91.273438 311.753906 66.90625 297.542969 42.980469"/>
       </svg>
 
       <div class="hero-logo">
@@ -79,6 +87,13 @@
   <script>
     /* fascia carosello: un riquadro alla volta, entra -> fermo ~2s -> scorre al successivo, infinito */
     (function(){
+      var hero = document.querySelector('.hero');
+      function pulseHero(){
+        if(!hero) return;
+        hero.classList.remove('pulse');
+        void hero.offsetWidth;          // forza il riavvio dell'animazione
+        hero.classList.add('pulse');
+      }
       // ogni fascia .promo-track scorre in modo indipendente, un riquadro alla volta, loop infinito
       document.querySelectorAll('.promo-track').forEach(function(track){
         var n = track.children.length;
@@ -88,6 +103,7 @@
           i++;
           track.style.transition = 'transform .6s ease';
           track.style.transform  = 'translateX(-' + (i*100) + '%)';
+          pulseHero();                   // parentesi si allargano + logo pulsa, in sync col cambio
           if(i === n){
             setTimeout(function(){
               track.style.transition = 'none';
