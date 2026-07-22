@@ -41,6 +41,10 @@
   @keyframes cresL{ 0%,100%{ transform:translateX(0); } 45%{ transform:translateX(-13px); } }
   @keyframes cresR{ 0%,100%{ transform:translateX(0); } 45%{ transform:translateX(13px); } }
   @keyframes logoPulse{ 0%,100%{ transform:scale(1); } 45%{ transform:scale(1.4); } }
+  /* clic sulle immagini del carosello: l'icona del menu pulsa */
+  .promo-slide img{ cursor:pointer; }
+  @keyframes burgerPulse{ 0%,100%{ transform:scale(1); } 45%{ transform:scale(1.35); } }
+  #hamburger.pulse{ animation: burgerPulse .5s ease; }
 </style>
 </head>
 <body>
@@ -112,6 +116,21 @@
             }, 650);
           }
         }, 2000); // scorrimento ogni 2 secondi
+      });
+    })();
+
+    /* clic su un'immagine del carosello -> l'icona del menu a panino pulsa */
+    (function(){
+      var burger = document.getElementById('hamburger');
+      var promo = document.querySelector('.promo');
+      if(!burger || !promo) return;
+      function pulseBurger(){
+        burger.classList.remove('pulse');
+        void burger.offsetWidth;   // riavvia l'animazione
+        burger.classList.add('pulse');
+      }
+      promo.addEventListener('click', function(e){
+        if(e.target.closest('.promo-slide')) pulseBurger();
       });
     })();
   </script>
