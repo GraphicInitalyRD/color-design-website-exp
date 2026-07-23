@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direct Color Chart - Color Design</title>
+<link rel="stylesheet" href="site.css">
+<style>
+  /* ===== Color Chart: barre colorate (famiglie) ad accordion, testo su una riga ===== */
+  .families{ background:#ffffff; }
+  .fam-bar{
+    display:flex; align-items:center; gap:8px;
+    width:100%; height:40px; border:none; margin:0 0 3px 0; padding:0 14px;
+    cursor:pointer; color:#ffffff; font-family:var(--font-main);
+    font-size:11px; letter-spacing:.2px; overflow:hidden;
+  }
+  /* contenitore che ritaglia + traccia scorrevole (marquee) */
+  .fam-bar .marquee{ flex:1; overflow:hidden; }
+  .fam-bar .track{ display:inline-flex; white-space:nowrap; will-change:transform; }
+  .fam-bar .txt{ white-space:nowrap; padding-right:70px; }
+  .fam-bar .track .txt:nth-child(2){ visibility:hidden; }          /* copia per il loop, nascosta a riposo */
+  .fam-bar.active .track .txt:nth-child(2){ visibility:visible; }
+  .fam-bar.active .track{ animation: marquee var(--dur,10s) linear infinite; }
+  @keyframes marquee{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  .fam-bar .chev{ flex:0 0 auto; font-size:11px; opacity:.9; transition:transform .3s ease; }
+  .fam-bar.active .chev{ transform:rotate(180deg); }
+
+  /* spazio orizzontale scorrevole (immagini ciocche) che si apre sotto la barra */
+  .fam-panel{ max-height:0; overflow:hidden; transition:max-height .35s ease; background:#f2f2f2; }
+  .fam-panel.open{ max-height:210px; }
+  .fam-panel .strip{ display:flex; gap:10px; overflow-x:auto; padding:12px 14px; -webkit-overflow-scrolling:touch; }
+  .fam-panel .strip .ph{
+    flex:0 0 auto; width:96px; height:128px; border-radius:4px;
+    background:#e2e2e2; color:#9a9a9a; font-size:9px; letter-spacing:1px; text-transform:uppercase;
+    display:flex; align-items:center; justify-content:center;
+  }
+  /* immagine ciocca dentro il riquadro (stessa misura dei segnaposto) */
+  .fam-panel .strip .ciocca-tile{
+    flex:0 0 auto; width:96px; height:128px; border-radius:4px;
+    object-fit:cover; background:#ffffff; cursor:pointer; display:block;
+  }
+  /* ingrandimento al clic: immagine 3x centrata sulla pagina */
+  .ciocca-overlay{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(0,0,0,.55); z-index:1000; cursor:zoom-out;
+  }
+  .ciocca-overlay.show{ display:flex; }
+  .ciocca-overlay img{
+    width:288px; height:384px; object-fit:cover;
+    border-radius:8px; box-shadow:0 10px 34px rgba(0,0,0,.5); background:#fff;
+  }
+  /* riquadro arcobaleno INTENSE DIRECT COLOR in cima (statico) */
+  .dch-hero-img{ display:block; width:100%; height:auto; }
+</style>
+</head>
+<body>
+  <div class="page">
+
+    <div id="site-header" data-title="DIRECT COLOR CHART" data-active="products"></div>
+
+    <img class="dch-hero-img" src="images/direct-color-header.jpg" alt="Intense Direct Color">
+
+    <main class="families">
+      <button class="fam-bar" type="button" style="background:#1a66b4;">
+        <span class="marquee"><span class="track" style="--dur:8.9s"><span class="txt">NATURALI INTENSI · INTENSIVE NATURALS · SATTE NATURTÖNE · NATURELLES INTENSES · NATURALES INTENSOS · NATURALES INTENSOS</span><span class="txt" aria-hidden="true">NATURALI INTENSI · INTENSIVE NATURALS · SATTE NATURTÖNE · NATURELLES INTENSES · NATURALES INTENSOS · NATURALES INTENSOS</span></span></span>
+        <span class="chev">&#9662;</span>
+      </button>
+      <div class="fam-panel"><div class="strip"><img class="ciocca-tile" src="images/1N.jpg" alt="1N" loading="lazy"><img class="ciocca-tile" src="images/3N.jpg" alt="3N" loading="lazy"><img class="ciocca-tile" src="images/6N.jpg" alt="6N" loading="lazy"></div></div>
+      <button class="fam-bar" type="button" style="background:#f0af66;">
+        <span class="marquee"><span class="track" style="--dur:3.8s"><span class="txt">BEIGE · BEIGE · BEIGE · BEIGE · BEIGE · BEGE</span><span class="txt" aria-hidden="true">BEIGE · BEIGE · BEIGE · BEIGE · BEIGE · BEGE</span></span></span>
+        <span class="chev">&#9662;</span>
+      </button>
+      <div class="fam-panel"><div class="strip"><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div></div></div>
+      <button class="fam-bar" type="button" style="background:#fbc854;">
+        <span class="marquee"><span class="track" style="--dur:4.6s"><span class="txt">DORATI · GOLDEN · GOLDTÖNE · DORÉES · DORADOS · DOURADOS</span><span class="txt" aria-hidden="true">DORATI · GOLDEN · GOLDTÖNE · DORÉES · DORADOS · DOURADOS</span></span></span>
+        <span class="chev">&#9662;</span>
+      </button>
+      <div class="fam-panel"><div class="strip"><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div></div></div>
+      <button class="fam-bar" type="button" style="background:#f7941a;">
+        <span class="marquee"><span class="track" style="--dur:6.0s"><span class="txt">ORO RAMATO · GOLD COPPER · GOLDKUPFER · OR CUIVRÉ · ORO COBRIZO · OURO COBRE</span><span class="txt" aria-hidden="true">ORO RAMATO · GOLD COPPER · GOLDKUPFER · OR CUIVRÉ · ORO COBRIZO · OURO COBRE</span></span></span>
+        <span class="chev">&#9662;</span>
+      </button>
+      <div class="fam-panel"><div class="strip"><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div></div></div>
+      <button class="fam-bar" type="button" style="background:#f26018;">
+        <span class="marquee"><span class="track" style="--dur:4.5s"><span class="txt">RAMATI · COPPER · KUPFER · CUIVRÉES · COBRIZOS · COBRE</span><span class="txt" aria-hidden="true">RAMATI · COPPER · KUPFER · CUIVRÉES · COBRIZOS · COBRE</span></span></span>
+        <span class="chev">&#9662;</span>
+      </button>
+      <div class="fam-panel"><div class="strip"><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div></div></div>
+      <button class="fam-bar" type="button" style="background:#d31937;">
+        <span class="marquee"><span class="track" style="--dur:4.3s"><span class="txt">ROSSI · AUBURN · ROTTÖNE · ROUSSES · ROJOS · RUIVOS</span><span class="txt" aria-hidden="true">ROSSI · AUBURN · ROTTÖNE · ROUSSES · ROJOS · RUIVOS</span></span></span>
+        <span class="chev">&#9662;</span>
+      </button>
+      <div class="fam-panel"><div class="strip"><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div></div></div>
+      <button class="fam-bar" type="button" style="background:#703d2f;">
+        <span class="marquee"><span class="track" style="--dur:5.0s"><span class="txt">NOCCIOLA · HAZELNUT · HASELNUSS · NOISETTE · AVELLANA · AVELÃ</span><span class="txt" aria-hidden="true">NOCCIOLA · HAZELNUT · HASELNUSS · NOISETTE · AVELLANA · AVELÃ</span></span></span>
+        <span class="chev">&#9662;</span>
+      </button>
+      <div class="fam-panel"><div class="strip"><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div></div></div>
+      <button class="fam-bar" type="button" style="background:#34171a;">
+        <span class="marquee"><span class="track" style="--dur:5.6s"><span class="txt">CIOCCOLATO · CHOCOLATE · SCHOKOLADE · CHOCOLAT · CHOCOLATE · CHOCOLATE</span><span class="txt" aria-hidden="true">CIOCCOLATO · CHOCOLATE · SCHOKOLADE · CHOCOLAT · CHOCOLATE · CHOCOLATE</span></span></span>
+        <span class="chev">&#9662;</span>
+      </button>
+      <div class="fam-panel"><div class="strip"><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div><div class="ph">ciocca</div></div></div>
+    </main>
+
+    <div id="site-footer"></div>
+
+  </div>
+
+  <script src="site.js"></script>
+  <script>
+    /* accordion: una sola barra aperta per volta; la barra attiva ha il testo scorrevole */
+    document.querySelectorAll('.fam-bar').forEach(function(bar){
+      bar.addEventListener('click', function(){
+        var panel = bar.nextElementSibling;
+        var isOpen = panel.classList.contains('open');
+        document.querySelectorAll('.fam-panel.open').forEach(function(p){ p.classList.remove('open'); });
+        document.querySelectorAll('.fam-bar.active').forEach(function(b){ b.classList.remove('active'); });
+        if(!isOpen){ panel.classList.add('open'); bar.classList.add('active'); }
+      });
+    });
+  </script>
+
+  <!-- lightbox per l'ingrandimento delle ciocche -->
+  <div class="ciocca-overlay" id="cioccaOverlay"><img alt=""></div>
+
+  <script>
+    /* clic su una ciocca -> ingrandimento 3x centrato; clic ovunque -> si richiude */
+    (function(){
+      var overlay = document.getElementById('cioccaOverlay');
+      var overlayImg = overlay.querySelector('img');
+      document.querySelectorAll('.ciocca-tile').forEach(function(t){
+        t.addEventListener('click', function(e){
+          e.stopPropagation();
+          overlayImg.src = t.src;
+          overlay.classList.add('show');
+        });
+      });
+      overlay.addEventListener('click', function(){ overlay.classList.remove('show'); });
+    })();
+  </script>
+</body>
+</html>
