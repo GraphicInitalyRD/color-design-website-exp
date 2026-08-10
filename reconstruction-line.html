@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reconstruction Line - Color Design</title>
+<link rel="stylesheet" href="site.css">
+<style>
+  /* ===== pagina Reconstruction Line: riquadro statico (pagina della brochure) ===== */
+  .reconstruction-main{ background:#ffffff; font-size:0; }
+  .reconstruction-img{ display:block; width:100%; height:auto; }
+
+  /* ===== carosello prodotti: loop infinito automatico + trascinamento a dito + zoom al tocco ===== */
+  .prod-strip-wrap{ background:#f2f2f2; overflow:hidden; }
+  .prod-track{
+    display:flex; gap:10px; padding:14px; width:max-content;
+    will-change:transform; touch-action:pan-y; cursor:grab;
+    -webkit-user-select:none; user-select:none;
+  }
+  .prod-track.dragging{ cursor:grabbing; }
+  .prod-track .prod-tile{
+    flex:0 0 auto; width:104px; height:170px; border-radius:4px;
+    object-fit:contain; background:#ffffff; display:block;
+    padding:6px; box-sizing:border-box; cursor:pointer;
+    -webkit-user-drag:none; user-drag:none;
+  }
+  /* segnaposto (in attesa delle 4 immagini) */
+  .prod-track .prod-ph{
+    flex:0 0 auto; width:104px; height:170px; border-radius:4px;
+    background:#e2e2e2; color:#9a9a9a; box-sizing:border-box;
+    border:1px dashed #c4c4c4;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-family:var(--font-main); font-size:9px; letter-spacing:1px; text-transform:uppercase;
+  }
+  /* ingrandimento al clic: immagine intera centrata sulla pagina */
+  .prod-overlay{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(0,0,0,.55); z-index:1000; cursor:zoom-out;
+  }
+  .prod-overlay.show{ display:flex; }
+  .prod-overlay img{
+    max-width:82vw; max-height:82vh; object-fit:contain;
+    border-radius:8px; box-shadow:0 10px 34px rgba(0,0,0,.5); background:#fff;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+
+    <div id="site-header" data-title="RECONSTRUCTION LINE" data-active="products"></div>
+
+    <main class="reconstruction-main">
+      <img class="reconstruction-img" src="images/reconstruction-line.jpg" alt="Reconstruction Line">
+
+      <div class="prod-strip-wrap">
+        <div class="prod-track" id="prodTrack">
+          <!-- copia 1 : 5 segnaposto (sostituire con le immagini quando disponibili) -->
+          <div class="prod-ph">Immagine 1</div>
+          <div class="prod-ph">Immagine 2</div>
+          <div class="prod-ph">Immagine 3</div>
+          <div class="prod-ph">Immagine 4</div>
+          <div class="prod-ph">Immagine 5</div>
+          <!-- copia 2 (per il loop continuo) -->
+          <div class="prod-ph" aria-hidden="true">Immagine 1</div>
+          <div class="prod-ph" aria-hidden="true">Immagine 2</div>
+          <div class="prod-ph" aria-hidden="true">Immagine 3</div>
+          <div class="prod-ph" aria-hidden="true">Immagine 4</div>
+          <div class="prod-ph" aria-hidden="true">Immagine 5</div>
+        </div>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+
+  </div>
+
+  <script src="site.js"></script>
+
+  <!-- lightbox per l'ingrandimento delle immagini -->
+  <div class="prod-overlay" id="prodOverlay"><img alt=""></div>
+
+  <script>
+  /* Carosello prodotti: scorrimento automatico in loop + trascinamento col dito + tap per ingrandire.
+     NOTA: ora ci sono 4 segnaposto. Quando avrai le immagini, sostituisci ogni
+     <div class="prod-ph">...</div> con <img class="prod-tile" src="images/NOME.jpg" alt="..." draggable="false">
+     (in entrambe le copie) e lo zoom al tocco funzionerà in automatico. */
+  (function(){
+    var track   = document.getElementById('prodTrack');
+    var overlay = document.getElementById('prodOverlay');
+    var overlayImg = overlay.querySelector('img');
+
+    var SPEED = 28;           /* velocità del loop automatico, px/secondo */
+    var TAP_SLOP = 12;        /* spostamento max (px) entro cui un tocco = tap che ingrandisce */
+    var offset = 0, half = 0, last = performance.now();
+
+    function measure(){ half = track.scrollWidth / 2; }   /* metà = una copia completa */
+    measure();
+    window.addEventListener('load', measure);
+    window.addEventListener('resize', measure);
+    Array.prototype.forEach.call(track.querySelectorAll('img'), function(im){
+      im.addEventListener('load', measure);
+    });
+
+    function apply(){ track.style.transform = 'translateX(' + offset + 'px)'; }
+    function norm(){
+      if(half > 0){
+        while(offset <= -half) offset += half;
+        while(offset > 0)      offset -= half;
+      }
+    }
+
+    /* ciclo di animazione: avanza da solo quando non si trascina e non si tiene premuto */
+    function tick(now){
+      var dt = (now - last) / 1000; last = now;
+      if(!dragging && !holding){ offset -= SPEED * dt; norm(); apply(); }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    /* gestione trascinamento (pointer = mouse + touch) con blocco d'asse */
+    var pointerActive = false, decided = false, horizontal = false, dragging = false, holding = false;
+    var startX = 0, startY = 0, startOffset = 0, tile = null;
+
+    track.addEventListener('pointerdown', function(e){
+      pointerActive = true; decided = false; horizontal = false; dragging = false;
+      holding = true;                 /* ferma subito il carosello: l'immagine non scivola da sotto il dito */
+      startX = e.clientX; startY = e.clientY; startOffset = offset;
+      tile = e.target.closest('.prod-tile');
+    });
+    track.addEventListener('pointermove', function(e){
+      if(!pointerActive) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if(!decided){
+        if(Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP){
+          decided = true;
+          horizontal = Math.abs(dx) >= Math.abs(dy);   /* orizzontale = trascino il carosello */
+          if(horizontal){
+            dragging = true;
+            track.classList.add('dragging');
+            track.setPointerCapture(e.pointerId);
+          } else {
+            holding = false;          /* movimento verticale: lascio scorrere la pagina e riparte il loop */
+          }
+        }
+      }
+      if(horizontal){
+        offset = startOffset + dx;    /* il dito muove/accelera il carosello */
+        norm(); apply();
+      }
+    });
+    var openedAt = 0;
+    function endPointer(e){
+      if(!pointerActive) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      var isTap = Math.abs(dx) < TAP_SLOP && Math.abs(dy) < TAP_SLOP;   /* tocco quasi fermo = tap */
+      pointerActive = false;
+      dragging = false;
+      holding = false;
+      last = performance.now();       /* evita salti quando riparte l'automatico */
+      track.classList.remove('dragging');
+      if(isTap && tile){
+        overlayImg.src = tile.src; overlayImg.alt = tile.alt;
+        overlay.classList.add('show');
+        openedAt = performance.now();   /* momento di apertura: ignora il "click fantasma" del touch */
+      }
+      tile = null;
+    }
+    track.addEventListener('pointerup', endPointer);
+    track.addEventListener('pointercancel', endPointer);
+    track.addEventListener('dragstart', function(e){ e.preventDefault(); });
+
+    /* chiusura zoom (il carosello sotto continua a scorrere) */
+    overlay.addEventListener('click', function(){
+      if(performance.now() - openedAt < 400) return;   /* scarta il click fantasma post-tap su touch */
+      overlay.classList.remove('show');
+    });
+  })();
+  </script>
+</body>
+</html>
