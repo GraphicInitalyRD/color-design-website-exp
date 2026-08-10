@@ -88,6 +88,7 @@
     var overlayImg = overlay.querySelector('img');
 
     var SPEED = 28;           /* velocità del loop automatico, px/secondo */
+    var TAP_SLOP = 12;        /* spostamento max (px) entro cui un tocco = tap che ingrandisce */
     var offset = 0, half = 0, last = performance.now();
 
     function measure(){ half = track.scrollWidth / 2; }   /* metà = una copia completa */
@@ -106,51 +107,59 @@
       }
     }
 
-    /* ciclo di animazione: avanza da solo quando non si sta trascinando */
+    /* ciclo di animazione: avanza da solo quando non si trascina e non si tiene premuto */
     function tick(now){
       var dt = (now - last) / 1000; last = now;
-      if(!dragging){ offset -= SPEED * dt; norm(); apply(); }
+      if(!dragging && !holding){ offset -= SPEED * dt; norm(); apply(); }
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
 
     /* gestione trascinamento (pointer = mouse + touch) con blocco d'asse */
-    var pointerActive = false, decided = false, horizontal = false, dragging = false;
-    var startX = 0, startY = 0, startOffset = 0, moved = 0, tile = null;
+    var pointerActive = false, decided = false, horizontal = false, dragging = false, holding = false;
+    var startX = 0, startY = 0, startOffset = 0, tile = null;
 
     track.addEventListener('pointerdown', function(e){
       pointerActive = true; decided = false; horizontal = false; dragging = false;
-      startX = e.clientX; startY = e.clientY; startOffset = offset; moved = 0;
+      holding = true;                 /* ferma subito il carosello: l'immagine non scivola da sotto il dito */
+      startX = e.clientX; startY = e.clientY; startOffset = offset;
       tile = e.target.closest('.bottle-tile');
     });
     track.addEventListener('pointermove', function(e){
       if(!pointerActive) return;
       var dx = e.clientX - startX, dy = e.clientY - startY;
       if(!decided){
-        if(Math.abs(dx) > 6 || Math.abs(dy) > 6){
+        if(Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP){
           decided = true;
           horizontal = Math.abs(dx) >= Math.abs(dy);   /* orizzontale = trascino il carosello */
           if(horizontal){
             dragging = true;
             track.classList.add('dragging');
             track.setPointerCapture(e.pointerId);
+          } else {
+            holding = false;          /* movimento verticale: lascio scorrere la pagina e riparte il loop */
           }
         }
       }
       if(horizontal){
-        moved = Math.max(moved, Math.abs(dx));
         offset = startOffset + dx;    /* il dito muove/accelera il carosello */
         norm(); apply();
       }
     });
     function endPointer(e){
       if(!pointerActive) return;
-      var wasTap = !decided;          /* nessuno spostamento significativo = tocco singolo */
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      var isTap = Math.abs(dx) < TAP_SLOP && Math.abs(dy) < TAP_SLOP;   /* tocco quasi fermo = tap */
       pointerActive = false;
       dragging = false;
+      holding = false;
       last = performance.now();       /* evita salti quando riparte l'automatico */
       track.classList.remove('dragging');
-      if(wasTap && tile){ overlayImg.src = tile.src; overlayImg.alt = tile.alt; overlay.classList.add('show'); }
+      if(isTap && tile){
+        overlayImg.src = tile.src; overlayImg.alt = tile.alt;
+        overlay.classList.add('show');
+        openedAt = performance.now();   /* momento di apertura: ignora il "click fantasma" del touch */
+      }
       tile = null;
     }
     track.addEventListener('pointerup', endPointer);
@@ -158,7 +167,11 @@
     track.addEventListener('dragstart', function(e){ e.preventDefault(); });
 
     /* chiusura zoom (il carosello sotto continua a scorrere) */
-    overlay.addEventListener('click', function(){ overlay.classList.remove('show'); });
+    var openedAt = 0;
+    overlay.addEventListener('click', function(){
+      if(performance.now() - openedAt < 400) return;   /* scarta il click fantasma post-tap su touch */
+      overlay.classList.remove('show');
+    });
   })();
   </script>
 </body>
