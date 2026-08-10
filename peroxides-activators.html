@@ -10,16 +10,19 @@
   .perox-main{ background:#ffffff; font-size:0; }
   .perox-img{ display:block; width:100%; height:auto; }
 
-  /* ===== striscia scorrevole flaconi (scroll con barra/dito + zoom al tocco) ===== */
-  .perox-strip-wrap{ background:#f2f2f2; }
-  .perox-strip{
-    display:flex; gap:10px; overflow-x:auto; padding:14px;
-    -webkit-overflow-scrolling:touch;
+  /* ===== carosello flaconi: loop infinito automatico + trascinamento a dito + zoom al tocco ===== */
+  .perox-strip-wrap{ background:#f2f2f2; overflow:hidden; }
+  .perox-track{
+    display:flex; gap:10px; padding:14px; width:max-content;
+    will-change:transform; touch-action:pan-y; cursor:grab;
+    -webkit-user-select:none; user-select:none;
   }
-  .perox-strip .bottle-tile{
+  .perox-track.dragging{ cursor:grabbing; }
+  .perox-track .bottle-tile{
     flex:0 0 auto; width:104px; height:170px; border-radius:4px;
-    object-fit:contain; background:#ffffff; cursor:pointer; display:block;
-    padding:6px; box-sizing:border-box;
+    object-fit:contain; background:#ffffff; display:block;
+    padding:6px; box-sizing:border-box; cursor:pointer;
+    -webkit-user-drag:none; user-drag:none;
   }
   /* ingrandimento al clic: flacone intero centrato sulla pagina */
   .bottle-overlay{
@@ -43,16 +46,27 @@
       <img class="perox-img" src="images/peroxides-activators.jpg" alt="Peroxides &amp; Activators">
 
       <div class="perox-strip-wrap">
-        <div class="perox-strip">
-          <img class="bottle-tile" src="images/perox-5-150.jpg" alt="Peroxide 5 vol - 150 ml" loading="lazy">
-          <img class="bottle-tile" src="images/perox-5.jpg" alt="Peroxide 5 vol" loading="lazy">
-          <img class="bottle-tile" src="images/perox-7.jpg" alt="Peroxide 7 vol Soft" loading="lazy">
-          <img class="bottle-tile" src="images/perox-10.jpg" alt="Peroxide 10 vol" loading="lazy">
-          <img class="bottle-tile" src="images/perox-13.jpg" alt="Peroxide 13 vol Reflex Plus" loading="lazy">
-          <img class="bottle-tile" src="images/perox-20-150.jpg" alt="Peroxide 20 vol - 150 ml" loading="lazy">
-          <img class="bottle-tile" src="images/perox-20.jpg" alt="Peroxide 20 vol" loading="lazy">
-          <img class="bottle-tile" src="images/perox-30.jpg" alt="Peroxide 30 vol" loading="lazy">
-          <img class="bottle-tile" src="images/perox-40.jpg" alt="Peroxide 40 vol" loading="lazy">
+        <div class="perox-track" id="peroxTrack">
+          <!-- copia 1 -->
+          <img class="bottle-tile" src="images/perox-5-150.jpg" alt="Peroxide 5 vol - 150 ml" draggable="false">
+          <img class="bottle-tile" src="images/perox-5.jpg" alt="Peroxide 5 vol" draggable="false">
+          <img class="bottle-tile" src="images/perox-7.jpg" alt="Peroxide 7 vol Soft" draggable="false">
+          <img class="bottle-tile" src="images/perox-10.jpg" alt="Peroxide 10 vol" draggable="false">
+          <img class="bottle-tile" src="images/perox-13.jpg" alt="Peroxide 13 vol Reflex Plus" draggable="false">
+          <img class="bottle-tile" src="images/perox-20-150.jpg" alt="Peroxide 20 vol - 150 ml" draggable="false">
+          <img class="bottle-tile" src="images/perox-20.jpg" alt="Peroxide 20 vol" draggable="false">
+          <img class="bottle-tile" src="images/perox-30.jpg" alt="Peroxide 30 vol" draggable="false">
+          <img class="bottle-tile" src="images/perox-40.jpg" alt="Peroxide 40 vol" draggable="false">
+          <!-- copia 2 (per il loop continuo) -->
+          <img class="bottle-tile" src="images/perox-5-150.jpg" alt="Peroxide 5 vol - 150 ml" draggable="false" aria-hidden="true">
+          <img class="bottle-tile" src="images/perox-5.jpg" alt="Peroxide 5 vol" draggable="false" aria-hidden="true">
+          <img class="bottle-tile" src="images/perox-7.jpg" alt="Peroxide 7 vol Soft" draggable="false" aria-hidden="true">
+          <img class="bottle-tile" src="images/perox-10.jpg" alt="Peroxide 10 vol" draggable="false" aria-hidden="true">
+          <img class="bottle-tile" src="images/perox-13.jpg" alt="Peroxide 13 vol Reflex Plus" draggable="false" aria-hidden="true">
+          <img class="bottle-tile" src="images/perox-20-150.jpg" alt="Peroxide 20 vol - 150 ml" draggable="false" aria-hidden="true">
+          <img class="bottle-tile" src="images/perox-20.jpg" alt="Peroxide 20 vol" draggable="false" aria-hidden="true">
+          <img class="bottle-tile" src="images/perox-30.jpg" alt="Peroxide 30 vol" draggable="false" aria-hidden="true">
+          <img class="bottle-tile" src="images/perox-40.jpg" alt="Peroxide 40 vol" draggable="false" aria-hidden="true">
         </div>
       </div>
     </main>
@@ -65,21 +79,87 @@
 
   <!-- lightbox per l'ingrandimento dei flaconi -->
   <div class="bottle-overlay" id="bottleOverlay"><img alt=""></div>
+
   <script>
-    /* clic su un flacone -> ingrandimento centrato; clic ovunque -> si richiude */
-    (function(){
-      var overlay = document.getElementById('bottleOverlay');
-      var overlayImg = overlay.querySelector('img');
-      document.querySelectorAll('.bottle-tile').forEach(function(t){
-        t.addEventListener('click', function(e){
-          e.stopPropagation();
-          overlayImg.src = t.src;
-          overlayImg.alt = t.alt;
-          overlay.classList.add('show');
-        });
-      });
-      overlay.addEventListener('click', function(){ overlay.classList.remove('show'); });
-    })();
+  /* Carosello flaconi: scorrimento automatico in loop + trascinamento col dito + tap per ingrandire */
+  (function(){
+    var track   = document.getElementById('peroxTrack');
+    var overlay = document.getElementById('bottleOverlay');
+    var overlayImg = overlay.querySelector('img');
+
+    var SPEED = 28;           /* velocità del loop automatico, px/secondo */
+    var offset = 0, half = 0, last = performance.now();
+
+    function measure(){ half = track.scrollWidth / 2; }   /* metà = una copia completa */
+    measure();
+    window.addEventListener('load', measure);
+    window.addEventListener('resize', measure);
+    Array.prototype.forEach.call(track.querySelectorAll('img'), function(im){
+      im.addEventListener('load', measure);
+    });
+
+    function apply(){ track.style.transform = 'translateX(' + offset + 'px)'; }
+    function norm(){
+      if(half > 0){
+        while(offset <= -half) offset += half;
+        while(offset > 0)      offset -= half;
+      }
+    }
+
+    /* ciclo di animazione: avanza da solo quando non si sta trascinando */
+    function tick(now){
+      var dt = (now - last) / 1000; last = now;
+      if(!dragging){ offset -= SPEED * dt; norm(); apply(); }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    /* gestione trascinamento (pointer = mouse + touch) con blocco d'asse */
+    var pointerActive = false, decided = false, horizontal = false, dragging = false;
+    var startX = 0, startY = 0, startOffset = 0, moved = 0, tile = null;
+
+    track.addEventListener('pointerdown', function(e){
+      pointerActive = true; decided = false; horizontal = false; dragging = false;
+      startX = e.clientX; startY = e.clientY; startOffset = offset; moved = 0;
+      tile = e.target.closest('.bottle-tile');
+    });
+    track.addEventListener('pointermove', function(e){
+      if(!pointerActive) return;
+      var dx = e.clientX - startX, dy = e.clientY - startY;
+      if(!decided){
+        if(Math.abs(dx) > 6 || Math.abs(dy) > 6){
+          decided = true;
+          horizontal = Math.abs(dx) >= Math.abs(dy);   /* orizzontale = trascino il carosello */
+          if(horizontal){
+            dragging = true;
+            track.classList.add('dragging');
+            track.setPointerCapture(e.pointerId);
+          }
+        }
+      }
+      if(horizontal){
+        moved = Math.max(moved, Math.abs(dx));
+        offset = startOffset + dx;    /* il dito muove/accelera il carosello */
+        norm(); apply();
+      }
+    });
+    function endPointer(e){
+      if(!pointerActive) return;
+      var wasTap = !decided;          /* nessuno spostamento significativo = tocco singolo */
+      pointerActive = false;
+      dragging = false;
+      last = performance.now();       /* evita salti quando riparte l'automatico */
+      track.classList.remove('dragging');
+      if(wasTap && tile){ overlayImg.src = tile.src; overlayImg.alt = tile.alt; overlay.classList.add('show'); }
+      tile = null;
+    }
+    track.addEventListener('pointerup', endPointer);
+    track.addEventListener('pointercancel', endPointer);
+    track.addEventListener('dragstart', function(e){ e.preventDefault(); });
+
+    /* chiusura zoom (il carosello sotto continua a scorrere) */
+    overlay.addEventListener('click', function(){ overlay.classList.remove('show'); });
+  })();
   </script>
 </body>
 </html>
