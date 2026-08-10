@@ -9,6 +9,29 @@
   /* ===== pagina Peroxides & Activators: riquadro statico (pagina della brochure) ===== */
   .perox-main{ background:#ffffff; font-size:0; }
   .perox-img{ display:block; width:100%; height:auto; }
+
+  /* ===== striscia scorrevole flaconi (scroll con barra/dito + zoom al tocco) ===== */
+  .perox-strip-wrap{ background:#f2f2f2; }
+  .perox-strip{
+    display:flex; gap:10px; overflow-x:auto; padding:14px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .perox-strip .bottle-tile{
+    flex:0 0 auto; width:104px; height:170px; border-radius:4px;
+    object-fit:contain; background:#ffffff; cursor:pointer; display:block;
+    padding:6px; box-sizing:border-box;
+  }
+  /* ingrandimento al clic: flacone intero centrato sulla pagina */
+  .bottle-overlay{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(0,0,0,.55); z-index:1000; cursor:zoom-out;
+  }
+  .bottle-overlay.show{ display:flex; }
+  .bottle-overlay img{
+    max-width:82vw; max-height:82vh; object-fit:contain;
+    border-radius:8px; box-shadow:0 10px 34px rgba(0,0,0,.5); background:#fff;
+  }
 </style>
 </head>
 <body>
@@ -18,6 +41,20 @@
 
     <main class="perox-main">
       <img class="perox-img" src="images/peroxides-activators.jpg" alt="Peroxides &amp; Activators">
+
+      <div class="perox-strip-wrap">
+        <div class="perox-strip">
+          <img class="bottle-tile" src="images/perox-5-150.jpg" alt="Peroxide 5 vol - 150 ml" loading="lazy">
+          <img class="bottle-tile" src="images/perox-5.jpg" alt="Peroxide 5 vol" loading="lazy">
+          <img class="bottle-tile" src="images/perox-7.jpg" alt="Peroxide 7 vol Soft" loading="lazy">
+          <img class="bottle-tile" src="images/perox-10.jpg" alt="Peroxide 10 vol" loading="lazy">
+          <img class="bottle-tile" src="images/perox-13.jpg" alt="Peroxide 13 vol Reflex Plus" loading="lazy">
+          <img class="bottle-tile" src="images/perox-20-150.jpg" alt="Peroxide 20 vol - 150 ml" loading="lazy">
+          <img class="bottle-tile" src="images/perox-20.jpg" alt="Peroxide 20 vol" loading="lazy">
+          <img class="bottle-tile" src="images/perox-30.jpg" alt="Peroxide 30 vol" loading="lazy">
+          <img class="bottle-tile" src="images/perox-40.jpg" alt="Peroxide 40 vol" loading="lazy">
+        </div>
+      </div>
     </main>
 
     <div id="site-footer"></div>
@@ -25,5 +62,24 @@
   </div>
 
   <script src="site.js"></script>
+
+  <!-- lightbox per l'ingrandimento dei flaconi -->
+  <div class="bottle-overlay" id="bottleOverlay"><img alt=""></div>
+  <script>
+    /* clic su un flacone -> ingrandimento centrato; clic ovunque -> si richiude */
+    (function(){
+      var overlay = document.getElementById('bottleOverlay');
+      var overlayImg = overlay.querySelector('img');
+      document.querySelectorAll('.bottle-tile').forEach(function(t){
+        t.addEventListener('click', function(e){
+          e.stopPropagation();
+          overlayImg.src = t.src;
+          overlayImg.alt = t.alt;
+          overlay.classList.add('show');
+        });
+      });
+      overlay.addEventListener('click', function(){ overlay.classList.remove('show'); });
+    })();
+  </script>
 </body>
 </html>
