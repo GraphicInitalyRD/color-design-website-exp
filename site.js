@@ -76,7 +76,7 @@
             '<a href="shampoo.html">Shampoo</a>' +
             '<a href="#bleach">Bleach</a>' +
             '<a href="#reconstruction-line">Reconstruction Line</a>' +
-            '<a href="#styling-treatments">Styling Treatments</a>' +
+            '<a href="styling-treatments.html">Styling Treatments</a>' +
           '</div>' +
         '</div>' +
         menuLink('color-chart','color-chart.html','Color Chart',active) +
