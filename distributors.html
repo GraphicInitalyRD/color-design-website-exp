@@ -33,6 +33,19 @@
                padding:18px 16px; text-align:center;
                font-family:var(--font-main); font-size:15px; font-weight:700; letter-spacing:1.5px;
                line-height:1.35; }
+
+  /* ===== barra nera comandi zoom (tra mappa e barra nomi) ===== */
+  .zoom-bar{ display:flex; align-items:center; justify-content:center; gap:12px; width:100%; box-sizing:border-box;
+             background:#000000; padding:8px 16px; }
+  .zoom-bar .zoom-label{ color:#ffffff; font-family:var(--font-main);
+                         font-size:15px; font-weight:700; letter-spacing:1.5px; }
+  .zoom-bar .zbtn{ width:96px; height:32px; border-radius:10px; border:none; cursor:pointer;
+                   background:#ffffff; color:#000000; font-family:var(--font-main);
+                   font-size:20px; font-weight:700; line-height:1; padding:0;
+                   display:flex; align-items:center; justify-content:center;
+                   -webkit-user-select:none; user-select:none; transition:transform .1s ease, opacity .2s; }
+  .zoom-bar .zbtn:active{ transform:scale(.9); }
+  .zoom-bar .zbtn:disabled{ opacity:.4; cursor:default; }
 </style>
 </head>
 <body>
@@ -52,6 +65,13 @@
             <g id="names"><text x="761" y="241.7" font-size="8">EGYPT</text><text x="714.5" y="235.8" font-size="8">LIBYA</text><text x="655.5" y="233" font-size="8">ALGERIA</text><text x="777.8" y="184.8" font-size="8">TURKEY</text><text x="852" y="213.8" font-size="8">IRAN</text><text x="819.1" y="245.8" font-size="8">SAUDI</text><text x="819.1" y="255.4" font-size="8">ARABIA</text><text x="1157.2" y="472.3" font-size="8">AUSTRALIA</text><text x="1264.3" y="529.2" font-size="8">NEW</text><text x="1264.3" y="538.8" font-size="8">ZEALAND</text><text x="256.5" y="252.6" font-size="8">MEXICO</text><text x="347.7" y="401.7" font-size="8">PERU</text><text x="387.7" y="322.8" font-size="8">VENEZUELA</text><text x="285.6" y="187.7" font-size="8">UNITED STATES</text><text x="414.8" y="523.1" font-size="8">ARGENTINA</text><text x="917.6" y="85.9" font-size="8">RUSSIA</text><text x="1126.9" y="188.7" font-size="6">SOUTH</text><text x="1126.9" y="195.9" font-size="6">KOREA</text><text x="1093.6" y="258.2" font-size="6">HONG</text><text x="1093.6" y="265.4" font-size="6">KONG</text><text x="1119.4" y="252" font-size="6">TAIWAN</text><text x="1066.7" y="354.2" font-size="6">SINGAPORE</text><text x="854.2" y="249.1" font-size="6">UAE</text><text x="871.5" y="268.8" font-size="6">OMAN</text><text x="810.1" y="210.3" font-size="6">IRAQ</text><text x="791.9" y="199.6" font-size="6">SYRIA</text><text x="772.4" y="208.1" font-size="4">LEBANON</text><text x="773.6" y="213" font-size="4">ISRAEL</text><text x="788.9" y="219.3" font-size="4">JORDAN</text><text x="763.8" y="201" font-size="4">CYPRUS</text><text x="848.4" y="243.3" font-size="4">QATAR</text><text x="847.5" y="237.6" font-size="4">BAHREIN</text><text x="742.3" y="165.4" font-size="4">BULGARIA</text><text x="694.8" y="165.6" font-size="6">ITALY</text><text x="604.3" y="271" font-size="6">MAURITANIA</text><text x="609.2" y="177" font-size="6">PORTUGAL</text><text x="717.5" y="125.7" font-size="6">POLAND</text><text x="756.3" y="137.4" font-size="6">UKRAINE</text><text x="737.5" y="153.3" font-size="6">ROMANIA</text><text x="690.6" y="205.7" font-size="6">TUNISIA</text><text x="688.1" y="128.3" font-size="6">GERMANY</text><text x="679.2" y="82.9" font-size="6">NORWAY</text><text x="706.9" y="89.1" font-size="6">SWEDEN</text><text x="636.8" y="178.5" font-size="6">SPAIN</text><text x="618.6" y="216" font-size="6">MOROCCO</text><text x="617.2" y="121.6" font-size="6">IRELAND</text><text x="735.6" y="82.6" font-size="6">FINLAND</text><text x="732.8" y="97.2" font-size="4">ESTONIA</text><text x="709.1" y="196.2" font-size="4">MALTA</text><text x="734.6" y="104.1" font-size="4">LATVIA</text><text x="728.9" y="110" font-size="4">LITHUANIA</text><text x="680.5" y="107.1" font-size="6">DENMARK</text><text x="587.2" y="222.6" font-size="4">CANARY ISLANDS</text><text x="587.2" y="227.4" font-size="4">(SPAIN)</text><text x="381.5" y="266" font-size="4">DOMINICAN</text><text x="381.5" y="270.8" font-size="4">REPUBLIC</text><text x="292.4" y="299.1" font-size="4">EL SALVADOR</text><text x="331.7" y="322.9" font-size="4">PANAMA</text><text x="703.4" y="133.3" font-size="4">CZECH</text><text x="703.4" y="137.3" font-size="4">REP.</text><text x="719.8" y="140.3" font-size="4">SLOVAKIA</text><text x="839.3" y="227.3" font-size="6">KUWAIT</text><text x="834" y="287.1" font-size="6">YEMEN</text></g>
           </g>
         </svg>
+      </div>
+
+      <!-- barra comandi zoom -->
+      <div class="zoom-bar">
+        <span class="zoom-label">ZOOM</span>
+        <button class="zbtn" id="zoomIn" type="button" aria-label="Zoom avanti">+</button>
+        <button class="zbtn" id="zoomOut" type="button" aria-label="Zoom indietro">−</button>
       </div>
 
       <!-- barra nomi stati: scorre in loop, cambia colore ogni secondo -->
@@ -125,7 +145,13 @@
       if(pts.size===0){dragging=false;wrap.classList.remove('drag');} }
     wrap.addEventListener('pointerup',up); wrap.addEventListener('pointercancel',up);
     wrap.addEventListener('dblclick',function(e){e.preventDefault();zoomAt(e.clientX,e.clientY,1.8);});
-    apply();
+    // pulsanti zoom: agiscono sul centro della mappa, entro i limiti MIN/MAX
+    function zoomCenter(f){ var r=wrap.getBoundingClientRect(); zoomAt(r.left+r.width/2, r.top+r.height/2, f); updateBtns(); }
+    var zin=document.getElementById('zoomIn'), zout=document.getElementById('zoomOut');
+    function updateBtns(){ zin.disabled = scale>=MAX-0.001; zout.disabled = scale<=MIN+0.001; }
+    zin.addEventListener('click', function(){ zoomCenter(1.5); });
+    zout.addEventListener('click', function(){ zoomCenter(1/1.5); });
+    apply(); updateBtns();
   })();
   </script>
 </body>
