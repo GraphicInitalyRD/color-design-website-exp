@@ -20,19 +20,27 @@
 
   /* ===== barra scorrevole nomi stati (loop infinito), cambia colore ogni secondo ===== */
   .states-bar{ display:flex; align-items:center; width:100%; height:40px; overflow:hidden;
-               color:#000; font-family:var(--font-main); font-size:11px; letter-spacing:.2px;
+               color:#000; font-family:var(--font-main); font-size:15px; font-weight:700; letter-spacing:1.5px;
                transition:background .85s ease; background:#E8B0B0; }
   .states-bar .marquee{ flex:1; overflow:hidden; }
   .states-bar .track{ display:inline-flex; white-space:nowrap; will-change:transform;
                       animation: statesmarq var(--dur,48s) linear infinite; }
   .states-bar .txt{ white-space:nowrap; padding-right:0; }
   @keyframes statesmarq{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+
+  /* ===== riquadro nero introduttivo sopra la mappa ===== */
+  .dist-intro{ width:100%; background:#000000; color:#ffffff; box-sizing:border-box;
+               padding:18px 16px; text-align:center;
+               font-family:var(--font-main); font-size:15px; font-weight:700; letter-spacing:1.5px;
+               line-height:1.35; }
 </style>
 </head>
 <body>
   <div class="page">
 
     <div id="site-header" data-title="DISTRIBUTORS" data-active="distributors"></div>
+
+    <div class="dist-intro">HERE YOU CAN FIND ALL THE COUNTRIES WHERE COLORDESIGN PRODUCTS ARE DISTRIBUTED</div>
 
     <main>
       <div class="map-wrap" id="mapWrap">
