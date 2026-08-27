@@ -55,18 +55,18 @@
 
       <div class="prod-strip-wrap">
         <div class="prod-track" id="prodTrack">
-          <!-- copia 1 : 5 segnaposto (sostituire con le immagini quando disponibili) -->
-          <div class="prod-ph">Immagine 1</div>
-          <div class="prod-ph">Immagine 2</div>
-          <div class="prod-ph">Immagine 3</div>
-          <div class="prod-ph">Immagine 4</div>
-          <div class="prod-ph">Immagine 5</div>
+          <!-- copia 1 -->
+          <img class="prod-tile" src="images/reconstruction-1-oil-100ml.jpg" alt="Ricostruzione 1 - Olio 100 ml" draggable="false">
+          <img class="prod-tile" src="images/reconstruction-1-oil-360ml.jpg" alt="Ricostruzione 1 - Olio 360 ml" draggable="false">
+          <img class="prod-tile" src="images/reconstruction-2-shampoo-360ml.jpg" alt="Ricostruzione 2 - Shampoo 360 ml" draggable="false">
+          <img class="prod-tile" src="images/reconstruction-3-mask-500ml.jpg" alt="Ricostruzione 3 - Maschera 500 ml" draggable="false">
+          <img class="prod-tile" src="images/reconstruction-3-mask-200ml.jpg" alt="Ricostruzione 3 - Maschera 200 ml" draggable="false">
           <!-- copia 2 (per il loop continuo) -->
-          <div class="prod-ph" aria-hidden="true">Immagine 1</div>
-          <div class="prod-ph" aria-hidden="true">Immagine 2</div>
-          <div class="prod-ph" aria-hidden="true">Immagine 3</div>
-          <div class="prod-ph" aria-hidden="true">Immagine 4</div>
-          <div class="prod-ph" aria-hidden="true">Immagine 5</div>
+          <img class="prod-tile" src="images/reconstruction-1-oil-100ml.jpg" alt="Ricostruzione 1 - Olio 100 ml" draggable="false" aria-hidden="true">
+          <img class="prod-tile" src="images/reconstruction-1-oil-360ml.jpg" alt="Ricostruzione 1 - Olio 360 ml" draggable="false" aria-hidden="true">
+          <img class="prod-tile" src="images/reconstruction-2-shampoo-360ml.jpg" alt="Ricostruzione 2 - Shampoo 360 ml" draggable="false" aria-hidden="true">
+          <img class="prod-tile" src="images/reconstruction-3-mask-500ml.jpg" alt="Ricostruzione 3 - Maschera 500 ml" draggable="false" aria-hidden="true">
+          <img class="prod-tile" src="images/reconstruction-3-mask-200ml.jpg" alt="Ricostruzione 3 - Maschera 200 ml" draggable="false" aria-hidden="true">
         </div>
       </div>
     </main>
@@ -82,9 +82,7 @@
 
   <script>
   /* Carosello prodotti: scorrimento automatico in loop + trascinamento col dito + tap per ingrandire.
-     NOTA: ora ci sono 4 segnaposto. Quando avrai le immagini, sostituisci ogni
-     <div class="prod-ph">...</div> con <img class="prod-tile" src="images/NOME.jpg" alt="..." draggable="false">
-     (in entrambe le copie) e lo zoom al tocco funzionerà in automatico. */
+     Le 5 immagini prodotto (Ricostruzione) sono caricate in due copie per il loop continuo. */
   (function(){
     var track   = document.getElementById('prodTrack');
     var overlay = document.getElementById('prodOverlay');
