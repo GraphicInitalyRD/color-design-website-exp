@@ -54,8 +54,8 @@
     background:rgba(232,176,176,.5);                    /* semitrasparente: il colore viene cambiato via JS */
     transition:background .85s ease;                    /* stesso fade morbido di Distributors */
   }
-  .logo-bar.is-top{ top:18px; }        /* poggia sul bordo SUPERIORE delle immagini del carosello */
-  .logo-bar.is-bottom{ bottom:20px; }  /* poggia sul bordo INFERIORE delle immagini del carosello */
+  .logo-bar.is-top{ top:18px; --logo-dur:28s; }  /* velocita base loghi barra superiore */        /* poggia sul bordo SUPERIORE delle immagini del carosello */
+  .logo-bar.is-bottom{ bottom:20px; --logo-dur:18.667s; }  /* loghi 1.5x piu veloci della barra superiore (28s / 1.5) */  /* poggia sul bordo INFERIORE delle immagini del carosello */
   .logo-bar .logo-marquee{ flex:1; overflow:hidden; }
   .logo-bar .logo-track{
     display:inline-flex; align-items:center; white-space:nowrap; will-change:transform;
