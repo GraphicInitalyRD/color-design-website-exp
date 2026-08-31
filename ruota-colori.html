@@ -17,7 +17,7 @@
   /* il titolo "HAIR COLOR WHEEL" è più lungo delle altre pagine: lo rimpicciolisco per farlo stare nella barra */
   #site-header .topbar-title{ font-size:12px; letter-spacing:.6px; }
 
-  .stage{ position:relative; height:74vh; min-height:580px; overflow:hidden; }
+  .stage{ position:relative; height:60vh; min-height:400px; overflow:hidden; }
   #wheel{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:grab; touch-action:none; }
   #wheel.dragging{ cursor:grabbing; }
 
@@ -155,12 +155,12 @@
   var POINTER_GAP = 26;
 
   /* radial layout of text (measured inward from the rim) */
-  var CODE_FONT=15, NAME_FONT=11;
-  var CODE_OFF=26;          // code centre = R - CODE_OFF (near the rim / arrow)
+  var CODE_FONT=15, NAME_FONT=9;
+  var CODE_OFF=26;          // code centre = R - CODE_OFF (near the rim / arrow) — dimensione INVARIATA
   var CODE_MAXLEN=44;       // code kept inside its own band near the rim
-  var NAME_START=88;        // first (outermost, ES) name centre = R - NAME_START
-  var NAME_STEP=76;         // radial gap between stacked names
-  var NAME_MAXLEN=64;       // max radial length before horizontal condensing
+  var NAME_START=72;        // first (outermost, ES) name centre = R - NAME_START
+  var NAME_STEP=48;         // nomi più vicini fra loro (prima 76)
+  var NAME_MAXLEN=42;       // nomi più piccoli/compatti (prima 64)
 
   function layout(){
     DPR = Math.min(window.devicePixelRatio||1, 2);
