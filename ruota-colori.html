@@ -28,6 +28,14 @@
     border-top:32px solid #ffffff;
     filter:drop-shadow(0 3px 5px rgba(0,0,0,.6));
   }
+  /* freccia in basso: speculare, allineata a quella sopra, 1.5x più grande, punta verso l'alto */
+  .pointer-bottom{
+    position:absolute; bottom:4px; left:50%; transform:translateX(-50%);
+    width:0; height:0; z-index:5; pointer-events:none;
+    border-left:27px solid transparent; border-right:27px solid transparent;
+    border-bottom:48px solid #ffffff;
+    filter:drop-shadow(0 -3px 5px rgba(0,0,0,.6));
+  }
 
   .controls{
     flex:0 0 auto; display:flex; justify-content:center; align-items:center;
@@ -75,6 +83,7 @@
       <div class="stage">
         <div class="pointer"></div>
         <canvas id="wheel"></canvas>
+        <div class="pointer-bottom"></div>
       </div>
       <div class="controls">
         <span class="hint">146 shades</span>
@@ -363,6 +372,22 @@
   layout();
   requestAnimationFrame(tick);
 })();
+</script>
+<script>
+  /* Frecce colorate: stesso pattern delle barre colorate della home page
+     (palette pastello a 12 tinte, ogni freccia cambia colore ogni secondo, mai uguale al precedente). */
+  (function(){
+    var PAL=["#E8B0B0","#E8CCB0","#E8E8B0","#CCE8B0","#B0E8B0","#B0E8CC","#B0E8E8","#B0CCE8","#B0B0E8","#CCB0E8","#E8B0E8","#E8B0CC"];
+    var top=document.querySelector('.pointer'), bot=document.querySelector('.pointer-bottom');
+    var curT=-1, curB=-1;
+    function pick(cur){ var n; do{ n=(Math.random()*PAL.length)|0; }while(n===cur); return n; }
+    function step(){
+      curT=pick(curT); if(top) top.style.borderTopColor=PAL[curT];
+      curB=pick(curB); if(bot) bot.style.borderBottomColor=PAL[curB];
+    }
+    step();
+    setInterval(step,1000);
+  })();
 </script>
 </body>
 </html>
