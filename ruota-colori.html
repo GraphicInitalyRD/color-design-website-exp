@@ -293,6 +293,7 @@
   var winCodeEl = document.getElementById("winCode");
   var winNameEl = document.getElementById("winName");
 
+  var justOpened = 0;
   function openSchedina(i){
     var s = SLICES[i];
     overlayImg.src = "images/" + encodeURIComponent(s.code) + ".jpg";
@@ -300,11 +301,13 @@
     winCodeEl.textContent = s.code;
     winNameEl.textContent = s.names[1]; // English name
     overlay.classList.add("show");
+    justOpened = performance.now();   // ignora il "click" finale dello stesso tocco che ha aperto la schedina
   }
   function closeSchedina(){ overlay.classList.remove("show"); }
 
   overlay.addEventListener("click", function(e){
     if(e.target.id === "againBtn") return;
+    if(performance.now() - justOpened < 450) return;  // evita l'auto-chiusura immediata dopo l'apertura
     closeSchedina();
   });
   document.getElementById("againBtn").addEventListener("click", function(e){
@@ -338,7 +341,7 @@
     dragging = false; canvas.classList.remove("dragging");
     try{ canvas.releasePointerCapture(pointerId); }catch(_){}
     pointerId = null;
-    if(movedDist < 8 && (performance.now()-downTime) < 350){
+    if(movedDist < 14 && (performance.now()-downTime) < 700){
       var p = getXY(e), i = sliceAt(p.x, p.y);
       if(i>=0){ openSchedina(i); vel = 0; return; }
     }
