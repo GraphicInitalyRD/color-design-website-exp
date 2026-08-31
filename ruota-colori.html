@@ -17,7 +17,7 @@
   /* il titolo "HAIR COLOR WHEEL" è più lungo delle altre pagine: lo rimpicciolisco per farlo stare nella barra */
   #site-header .topbar-title{ font-size:12px; letter-spacing:.6px; }
 
-  .stage{ position:relative; height:60vh; min-height:400px; overflow:hidden; }
+  .stage{ position:relative; height:74vh; min-height:580px; overflow:hidden; }
   #wheel{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:grab; touch-action:none; }
   #wheel.dragging{ cursor:grabbing; }
 
@@ -167,7 +167,7 @@
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = Math.round(W*DPR); canvas.height = Math.round(H*DPR);
     ctx.setTransform(DPR,0,0,DPR,0,0);
-    R = Math.max(Math.max(W,H)*1.2, 940);
+    R = 940;                // fisso: dimensioni di ruota/spicchi/scritte invariate a qualsiasi altezza dello stage
     cx = W/2;
     cy = POINTER_GAP + R;   // centre well below the screen: only the top arc shows
   }
