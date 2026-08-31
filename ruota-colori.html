@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hair Color Wheel - Color Design</title>
+<link rel="stylesheet" href="site.css">
+<style>
+  :root{ --ink:#f5f5f5; }
+  /* pannello scuro della ruota, tra header e footer del sito */
+  .wheel-main{
+    background:radial-gradient(120% 90% at 50% 0%, #1c2128 0%, #111418 70%);
+    color:var(--ink); -webkit-tap-highlight-color:transparent;
+  }
+  .wheel-hint{ text-align:center; padding:12px 16px 2px; font-size:11px; letter-spacing:.5px;
+    opacity:.55; pointer-events:none; user-select:none; }
+  /* il titolo "HAIR COLOR WHEEL" è più lungo delle altre pagine: lo rimpicciolisco per farlo stare nella barra */
+  #site-header .topbar-title{ font-size:12px; letter-spacing:.6px; }
+
+  .stage{ position:relative; height:60vh; min-height:400px; overflow:hidden; }
+  #wheel{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:grab; touch-action:none; }
+  #wheel.dragging{ cursor:grabbing; }
+
+  .pointer{
+    position:absolute; top:4px; left:50%; transform:translateX(-50%);
+    width:0; height:0; z-index:5; pointer-events:none;
+    border-left:18px solid transparent; border-right:18px solid transparent;
+    border-top:32px solid #ffffff;
+    filter:drop-shadow(0 3px 5px rgba(0,0,0,.6));
+  }
+
+  .controls{
+    flex:0 0 auto; display:flex; justify-content:center; align-items:center;
+    gap:14px; padding:12px 16px calc(16px + env(safe-area-inset-bottom));
+    position:relative; z-index:6;
+  }
+  .btn-spin{
+    appearance:none; border:none; cursor:pointer;
+    font-family:var(--font-main); font-size:15px; font-weight:700; letter-spacing:2px;
+    text-transform:uppercase; color:#111; background:#ffffff;
+    padding:13px 36px; border-radius:40px;
+    box-shadow:0 6px 18px rgba(0,0,0,.4); transition:transform .08s ease, box-shadow .2s;
+  }
+  .btn-spin:active{ transform:translateY(2px); box-shadow:0 3px 10px rgba(0,0,0,.4); }
+  .hint{ font-size:11px; opacity:.45; letter-spacing:.3px; }
+
+  .ciocca-overlay{
+    position:fixed; inset:0; display:none; flex-direction:column;
+    align-items:center; justify-content:center; gap:14px;
+    background:rgba(0,0,0,.72); z-index:1000; cursor:zoom-out;
+    -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  }
+  .ciocca-overlay.show{ display:flex; animation:fade .18s ease; }
+  @keyframes fade{ from{opacity:0} to{opacity:1} }
+  .ciocca-overlay img{
+    width:288px; height:384px; max-width:86vw; max-height:60vh; object-fit:contain;
+    border-radius:10px; box-shadow:0 14px 40px rgba(0,0,0,.6); background:#fff;
+  }
+  .win-code{ font-size:22px; letter-spacing:3px; font-weight:700; text-transform:uppercase; }
+  .win-name{ font-size:12px; letter-spacing:1px; opacity:.7; margin-top:-8px; text-transform:uppercase; }
+  .again{
+    appearance:none; border:1px solid rgba(255,255,255,.6); background:transparent;
+    color:#fff; font-family:var(--font-main); font-size:12px; letter-spacing:2px;
+    text-transform:uppercase; padding:10px 22px; border-radius:30px; cursor:pointer; margin-top:6px;
+  }
+  .again:active{ background:rgba(255,255,255,.12); }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div id="site-header" data-title="HAIR COLOR WHEEL" data-active="wheel"></div>
+
+    <main class="wheel-main">
+      <p class="wheel-hint">Drag with your finger or press SPIN &middot; the colour under the arrow wins</p>
+      <div class="stage">
+        <div class="pointer"></div>
+        <canvas id="wheel"></canvas>
+      </div>
+      <div class="controls">
+        <span class="hint">146 shades</span>
+        <button class="btn-spin" id="spinBtn" type="button">Spin</button>
+        <span class="hint">tap a wedge</span>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+  </div>
+
+  <div class="ciocca-overlay" id="cioccaOverlay">
+    <img alt="">
+    <div class="win-code" id="winCode"></div>
+    <div class="win-name" id="winName"></div>
+    <button class="again" id="againBtn" type="button">Spin again</button>
+  </div>
+
+<script src="site.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ====== Colours per family (same order as the color chart) ====== */
+  var FAMILIES = [
+    ["#1a66b4", ["1N","2N","3N","4N","5N","6N","7N","8N","9N","10N"]],
+    ["#203865", ["4NN","5NN","6NN","7NN","8NN","9NN"]],
+    ["#062849", ["4NNN","5NNN","6NNN","7NNN","8NNN","9NNN"]],
+    ["#6fc9e9", ["4NNG","5NNG","6NNG","7NNG","8NNG","9NNG","10NNG"]],
+    ["#a6a7a5", ["1BB","4NA","5NA","6NA","7NA","8NA","9NA"]],
+    ["#a6a7a5", ["5AA","6AA","7AA","8AA","9AA"]],
+    ["#d3b2de", ["4AV","5AV","6AV","7AV","8AV","9AV","10AV"]],
+    ["#311f4f", ["2V","4V","5V","5VV","6V","6VVV"]],
+    ["#f0af66", ["5GV","6GV","7GV","8GV","9GV","10GV"]],
+    ["#fbc854", ["4G","5G","6G","7G","8G","9G"]],
+    ["#f9b133", ["7GG","8GG","9GG"]],
+    ["#f7941a", ["6GC","7GC","8GC","9GC"]],
+    ["#f26018", ["4C","5C","6C","7C","7CC","7CCC","7CR","8C","9C"]],
+    ["#d31937", ["4RV","5R","5RRR","6RR","6RRR","7RR","7RRR","7RV"]],
+    ["#7c2749", ["4M","5M","5MM","5MR","6M","7M"]],
+    ["#8b594c", ["4VG","5VG","6VG","7VG"]],
+    ["#62262c", ["5GM","6GM","7GM"]],
+    ["#703d2f", ["4CHG","5CHG","6CHG","7CHG"]],
+    ["#34171a", ["4CHA","5CHA","6CHA","7CHA"]],
+    ["#34171a", ["4CH","5CH","6CH","7CH","8CH"]],
+    ["#616b30", ["6MT","7MT","8MT","9MT"]],
+    ["#f5eae2", ["10HLN","10HLA","10HLAA","11HLN","11HLAA","11HLB","11HLG","12SHLN","12SHLA","12SHLP","12SHLNV","12SHLAV"]],
+    ["#6b389e", ["7MV","8MS","9MR"]],
+    ["#f05cb5", ["YELLOW","RED","VIOLET","BLUE","GREEN","CLEAR"]],
+    ["#ea85c6", ["1SW","1SG","1SV","LIGHT GREY","DARK GREY"]]
+  ];
+
+  /* ====== Colour names in 6 languages [IT, EN, DE, FR, PT, ES] ====== */
+  var NAMES = {"1N":["NERO","BLACK","SCHWARZ","NOIR","NEGRO","PRETO"],"2N":["BRUNO","DARKEST BROWN","DUNKLEST BRAUN","BRUN","MORENO","MORENO"],"3N":["CASTANO SCURO","DARK BROWN","DUNKELBRAUN","CHÂTAIN FONCÉ","CASTAÑO OSCURO","CASTANHO ESCURO"],"4N":["CASTANO","BROWN","BRAUN","CHÂTAIN","CASTAÑO","CASTANHO"],"5N":["CASTANO CHIARO","LIGHT BROWN","HELLBRAUN","CHÂTAIN CLAIR","CASTAÑO CLARO","CASTANHO CLARO"],"6N":["BIONDO SCURO","DARK BLOND","DUNKELBLOND","BLOND FONCÉ","RUBIO OSCURO","LOIRO ESCURO"],"7N":["BIONDO","BLOND","BLOND","BLOND","RUBIO","LOIRO"],"8N":["BIONDO CHIARO","LIGHT BLOND","HELLBLOND","BLOND CLAIR","RUBIO CLARO","LOIRO CLARO"],"9N":["BIONDO CHIARISSIMO","VERY LIGHT BLOND","BLOND EXTRAHELL","BLOND TRÈS CLAIR","RUBIO CLARÍSIMO","LOIRO CLARISSIMO"],"10N":["BIONDO PLATINO","PLATINUM BLOND","PLATINBLOND","BLOND PLATINE","RUBIO PLATINADO","LOIRO PLATINADO"],"4NN":["CASTANO EXTRA INTENSO","EXTRA INTENSIVE BROWN","BRAUN EXTRASATT","CHÂTAIN EXTRA INTENSE","CASTAÑO EXTRA INTENSO","CASTANHO EXTRA INTENSO"],"5NN":["CASTANO CHIARO EXTRA INTENSO","EXTRA INTENSIVE LIGHT BROWN","HELLBRAUN EXTRASATT","CHÂTAIN CLAIR EXTRA INTENSE","CASTAÑO CLARO EXTRA INTENSO","CASTANHO CLARO EXTRA INTENSO"],"6NN":["BIONDO SCURO EXTRA INTENSO","EXTRA INTENSIVE DARK BLOND","DUNKELBLOND EXTRASATT","BLOND FONCÉ EXTRA INTENSE","RUBIO OSCURO EXTRA INTENSO","LOIRO ESCURO EXTRA INTENSO"],"7NN":["BIONDO EXTRA INTENSO","EXTRA INTENSIVE BLOND","BLOND EXTRASATT","BLOND EXTRA INTENSE","RUBIO EXTRA INTENSO","LOIRO EXTRA INTENSO"],"8NN":["BIONDO CHIARO EXTRA INTENSO","EXTRA INTENSIVE LIGHT BLOND","HELLBLOND EXTRASATT","BLOND CLAIR EXTRA INTENSE","RUBIO CLARO EXTRA INTENSO","LOIRO CLARO EXTRA INTENSO"],"9NN":["BIONDO CHIARISSIMO EXTRA INTENSO","EXTRA INTENSIVE VERY LIGHT BLOND","BLOND EXTRAHELL EXTRASATT","BLOND TRÈS CLAIR EXTRA INTENSE","RUBIO CLARÍSIMO EXTRA INTENSO","LOIRO CLARISSIMO EXTRA INTENSO"],"4NNN":["CASTANO SUPER INTENSIVE","SUPER INTENSIVE BROWN","SUPER INTENSIVES BRAUN","BRUN SUPER INTENSIF","CASTANHO SUPER INTENSIVO","MARRÓN SUPER INTENSIVO"],"5NNN":["MARRONE CHIARO SUPER INTENSO","SUPER INTENSIVE LIGHT BROWN","SUPER INTENSIVES HELLBRAUN","BRUN CLAIR SUPER INTENSIF","CASTANHO CLARO SUPER INTENSIVO","MARRÓN CLARO SUPER INTENSO"],"6NNN":["BIONDO SCURO SUPER INTENSO","SUPER INTENSIVE DARK BLOND","SUPER INTENSIVES DUNKELBLOND","BLOND FONCÉ SUPER INTENSIF","LOIRO ESCURO SUPER INTENSIVO","RUBIO OSCURO SÚPER INTENSIVO"],"7NNN":["BIONDO SUPER INTENSO","SUPER INTENSIVE BLOND","SUPER INTENSIVES BLOND","BLOND SUPER INTENSIF","LOIRO SUPER INTENSIVO","RUBIO SÚPER INTENSIVO"],"8NNN":["BIONDO CHIARO SUPER INTENSO","SUPER INTENSIVE LIGHT BLOND","SUPER INTENSIVES HELLBLOND","BLOND CLAIR SUPER INTENSIF","LOIRO CLARO SUPER INTENSIVO","RUBIO CLARO SÚPER INTENSIVO"],"9NNN":["BIONDO CHIARISSIMO SUPER INTENSO","VERY LIGHT BLONDE SUPER INTENSE","SEHR HELLBLOND SUPER INTENSIV","BLOND TRÈS CLAIR SUPER INTENSE","LOIRO MUITO CLARO SUPER INTENSO","RUBIO MUY CLARO SUPER INTENSO"],"4NNG":["CASTANO NATURALE MEDIO","MEDIUM NATURAL BROWN","NATÜRLICH MITTLERE","CHÂTAIN NATUREL MOYEN","CASTAÑO NATURAL MEDIO","CASTANHO NATURAL MEDIO"],"5NNG":["CASTANO CHIARO NATURALE MEDIO","MEDIUM NATURAL LIGHT BROWN","HELLBRAUN NATÜRLICH MITTLERE","CHÂTAIN CLAIR NATUREL MOYEN","CASTAÑO CLARO NATURAL MEDIO","CASTANHO CLARO NATURAL MEDIO"],"6NNG":["BIONDO SCURO NATURALE MEDIO","MEDIUM NATURAL DARK BLOND","DUNKELBLOND NATÜRLICH MITTLERE","BLOND FONCÉ NATUREL MOYEN","RUBIO OSCURO NATURAL MEDIO","LOIRO ESCURO NATURAL MEDIO"],"7NNG":["BIONDO NATURALE MEDIO","MEDIUM NATURAL BLOND","BLOND NATÜRLICH MITTLERE","BLOND NATUREL MOYEN","RUBIO NATURAL MEDIO","LOIRO NATURAL MEDIO"],"8NNG":["BIONDO CHIARO NATURALE MEDIO","MEDIUM NATURAL LIGHT BLOND","HELLBLOND NATÜRLICH MITTLERE","BLOND CLAIR NATUREL MOYEN","RUBIO CLARO NATURAL MEDIO","LOIRO CLARO NATURAL MEDIO"],"9NNG":["BIONDO CHIARISSIMO NATURALE MEDIO","MEDIUM NATURAL VERY LIGHT BLOND","BLOND EXTRAHELL NATÜRLICH MITTLERE","BLOND TRÈS CLAIR NATUREL MOYEN","RUBIO CLARÍSIMO NATURAL MEDIO","LOIRO CLARISSIMO NATURAL MEDIO"],"10NNG":["BIONDO PLATINO NATURALE MEDIO","MEDIUM NATURAL PLATINUM BLOND","PLATINBLOND NATÜRLICH MITTLERE","BLOND PLATINE NATUREL MOYEN","RUBIO PLATINADO NATURAL MEDIO","LOIRO PLATINADO NATURAL MEDIO"],"1BB":["NERO BLU","BLUE BLACK","SCHWARZBLAU","NOIR BLEU","NEGRO AZUL","PRETO AZULADO"],"4NA":["CASTANO NATURALE CENERE","ASH NATURAL BROWN","ASCHBRAUN NATÜRLICH","CHÂTAIN NATUREL CENDRÉ","CASTAÑO NATURAL CENIZO","CASTANHO NATURAL PRATEADO"],"5NA":["CASTANO CHIARO NATURALE CENERE","ASH NATURAL LIGHT BROWN","HELLASCHBRAUN NATÜRLICH","CHÂTAIN CLAIR NATUREL CENDRÉ","CASTAÑO CLARO NATURAL CENIZO","CASTANHO CLARO NATURAL PRATEADO"],"6NA":["BIONDO SCURO NATURALE CENERE","ASH NATURAL DARK BLOND","DUNKELASCHBLOND NATÜRLICH","BLOND FONCÉ NATUREL CENDRÉ","RUBIO OSCURO NATURAL CENIZO","LOIRO ESCURO NATURAL PRATEADO"],"7NA":["BIONDO NATURALE CENERE","ASH NATURAL BLOND","ASCHBLOND NATÜRLICH","BLOND NATUREL CENDRÉ","RUBIO NATURAL CENIZO","LOIRO NATURAL PRATEADO"],"8NA":["BIONDO CHIARO NATURALE CENERE","ASH NATURAL LIGHT BLOND","HELLASCHBLOND NATÜRLICH","BLOND CLAIR NATUREL CENDRÉ","RUBIO CLARO NATURAL CENIZO","LOIRO CLARO NATURAL PRATEADO"],"9NA":["BIONDO CHIARISSIMO NATURALE CENERE","ASH NATURAL VERY LIGHT BLOND","ASCHBLOND EXTRAHELL NATÜRLICH","BLOND TRÈS CLAIR NATUREL CENDRÉ","RUBIO CLARÍSIMO NATURAL CENIZO","LOIRO CLARISSIMO NATURAL PRATEADO"],"5AA":["CASTANO CHIARO NATURALE CENERE INTENSO","INTENSIVE ASH NATURAL LIGHT BROWN","HELLASCHBRAUN NATÜRLICH SATT","CHÂTAIN CLAIR NATUREL CENDRÉ INTENSE","CASTAÑO CLARO NATURAL CENIZO INTENSO","CASTANHO CLARO NATURAL PRATEADO INTENSO"],"6AA":["BIONDO SCURO NATURALE CENERE INTENSO","INTENSIVE ASH NATURAL DARK BLOND","DUNKELASCHBLOND NATÜRLICH SATT","BLOND FONCÉ NATUREL CENDRÉ INTENSE","RUBIO OSCURO NATURAL CENIZO INTENSO","LOIRO ESCURO NATURAL PRATEADO INTENSO"],"7AA":["BIONDO NATURALE CENERE INTENSO","INTENSIVE ASH NATURAL BLOND","ASCHBLOND NATÜRLICH SATT","BLOND CENDRÉ NATUREL INTENSE","RUBIO CENIZO NATURAL INTENSO","LOIRO NATURAL PRATEADO INTENSO"],"8AA":["BIONDO CHIARO NATURALE CENERE INTENSO","INTENSIVE ASH NATURAL LIGHT BLOND","HELLASCHBLOND NATÜRLICH SATT","BLOND CLAIR NATUREL CENDRÉ INTENSE","RUBIO CLARO NATURAL CENIZO INTENSO","LOIRO CLARO NATURAL PRATEADO INTENSO"],"9AA":["BIONDO CH.MO NATURALE CENERE INT.","INT. ASH NATURAL VERY LIGHT BLOND","ASCHBLOND EXTRAHELL NATÜRLICH SATT","BLOND TRÈS CLAIR NATUREL CENDRÉ INT.","RUBIO CL.MO NATURAL CENIZO INT.","LOIRO CL.MO NATURAL PRATEADO INT."],"4AV":["CENERE MARRONE PERLA","ASH PEARL BROWN","ESCHE PERLBRAUN","BRUN CENDRE PERLE","CINZA PÉROLA CASTANHO","MARRÓN PERLA CENIZA"],"5AV":["CENERE PERLA MARRONE CHIARO","ASH PEARL LIGHT BROWN","ESCHE PERLHELLBRAUN","CENDRE BRUN CLAIR PERLE","CINZA PÉROLA CASTANHO CLARO","CENIZO PERLA MARRÓN CLARO"],"6AV":["BIONDO CHIARO PERLA CENERE","ASH PEARL LIGHT BLOND","ASCHE PERLHELLBLOND","BLOND CLAIR PERLE CENDRÉ","CINZA PÉROLA LOURO CLARO","RUBIO CLARO PERLA CENIZA"],"7AV":["BIONDO CENERE PERLA","ASH PEARL BLONDE","ASCHENPERLENBLOND","BLOND PERLE CENDRE","LOIRA CINZA PÉROLA","RUBIO CENIZO PERLA"],"8AV":["BIONDO CHIARO CENERE PERLA","LIGHT ASH PEARL BLONDE","HELLE ASCHE PERLBLOND","BLOND CLAIR CENDRÉ PERLÉ","LOIRO CINZA PÉROLA CLARO","RUBIO CLARO CENIZA PERLA"],"9AV":["BIONDO CHIARISSIMO CENERE PERLA","VERY LIGHT ASH PEARL BLONDE","SEHR HELL ASCHPERLENBLOND","BLOND CENDRÉ PERLÉ TRÈS CLAIR","LOIRO CINZA PÉROLA MUITO CLARO","RUBIO PERLA CENIZA MUY CLARO"],"10AV":["BIONDO PLATINO CENERE PERLA","PLATINUM ASH PEARL BLONDE","PLATIN ESCHE PERLBLOND","BLOND PLATINE CENDRÉ PERLÉ","PLATINA CINZA PÉROLA LOIRA","RUBIO PLATINO CENIZA PERLA"],"2V":["BRUNO VIOLA","DARKEST VIOLET BROWN","DUNKLEST BRAUN VIOLETT","BRUN IRISÉ","MORENO ROXO","MORENO VIOLETA"],"4V":["CASTANO VIOLA","VIOLET BROWN","BRAUN VIOLETT","CHÂTAIN IRISÉ","CASTANHO ROXO","CASTAÑO VIOLETA"],"5V":["CASTANO CHIARO VIOLA","LIGHT VIOLET BROWN","HELLBRAUN VIOLETT","CHÂTAIN CLAIR IRISÉ","CASTANHO CLARO ROXO","CASTAÑO CLARO VIOLETA"],"5VV":["CASTANO CHIARO VIOLA INTENSO","INTENSIVE VIOLET LIGHT BROWN","HELLBRAUN SATT VIOLETT","CHÂTAIN CLAIR IRISÉ INTENSE","CASTANHO CLARO ROXO INTENSO","CASTAÑO CLARO VIOLETA INTENSO"],"6V":["BIONDO SCURO VIOLA","DARK VIOLET BLOND","DUNKELBLOND VIOLETT","BLOND FONCÉ IRISÉ","LOIRO ESCURO ROXO","RUBIO OSCURO VIOLETA"],"6VVV":["BIONDO SCURO VIOLA EXTRA INTENSO","EXTRA INTENSIVE VIOLET DARK BLOND","DUNKELBLOND EXTRA SATT VIOLETT","BLOND FONCÉ IRISÉ EXTRA INTENSE","LOIRO ESCURO ROXO EXTRA INTENSO","RUBIO OSCURO VIOLETA EXTRA INTENSO"],"5GV":["CASTANO CHIARO BEIGE","LIGHT BEIGE BROWN","HELLBEIGEBRAUN","CHÂTAIN CLAIR BEIGE","CASTANHO CLARO BEGE","CASTAÑO CLARO BEIGE"],"6GV":["BIONDO SCURO BEIGE","DARK BEIGE BLOND","DUNKELBEIGEBLOND","BLOND FONCÉ BEIGE","LOIRO ESCURO BEGE","RUBIO OSCURO BEIGE"],"7GV":["BIONDO BEIGE","BEIGE BLOND","BEIGEBLOND","BLOND BEIGE","LOIRO BEGE","RUBIO BEIGE"],"8GV":["BIONDO CHIARO BEIGE","LIGHT BEIGE BLOND","HELLBEIGEBLOND","BLOND CLAIR BEIGE","LOIRO CLARO BEGE","RUBIO CLARO BEIGE"],"9GV":["BIONDO CHIARISSIMO BEIGE","VERY LIGHT BEIGE BLOND","BEIGEBLOND EXTRAHELL","BLOND TRÈS CLAIR BEIGE","LOIRO CLARISSIMO BEGE","RUBIO CLARÍSIMO BEIGE"],"10GV":["BIONDO PLATINO BEIGE","PLATINUM BEIGE BLOND","BEIGE PLATINBLOND","BLOND PLATINE BEIGE","LOIRO PLATINADO BEGE","RUBIO PLATINADO BEIGE"],"4G":["CASTANO DORATO","GOLDEN BROWN","GOLDBRAUN","CHÂTAIN DORÉ","CASTANHO DOURADO","CASTAÑO DORADO"],"5G":["CASTANO CHIARO DORATO","LIGHT GOLDEN BROWN","HELLGOLDBRAUN","CHÂTAIN CLAIR DORÉ","CASTANHO CLARO DOURADO","CASTAÑO CLARO DORADO"],"6G":["BIONDO SCURO DORATO","DARK GOLDEN BLOND","DUNKELGOLDBLOND","BLOND FONCÉ DORÉ","LOIRO ESCURO DOURADO","RUBIO OSCURO DORADO"],"7G":["BIONDO DORATO","GOLDEN BLOND","GOLDBLOND","BLOND DORÉ","LOIRO DOURADO","RUBIO DORADO"],"8G":["BIONDO CHIARO DORATO","LIGHT GOLDEN BLOND","HELLGOLDBLOND","BLOND CLAIR DORÉ","LOIRO CLARO DOURADO","RUBIO CLARO DORADO"],"9G":["BIONDO CHIARISSIMO DORATO","VERY LIGHT GOLDEN BLOND","GOLDBLOND EXTRAHELL","BLOND TRÈS CLAIR DORÉ","LOIRO CLARISSIMO DOURADO","RUBIO CLARÍSIMO DORADO"],"7GG":["BIONDO DORATO INTENSO","INTENSIVE GOLDEN BLOND","GOLDBLOND SATT","BLOND DORÉ INTENSE","LOIRO DOURADO INTENSO","RUBIO DORADO INTENSO"],"8GG":["BIONDO CHIARO DORATO INTENSO","INTENSIVE GOLDEN LIGHT BLOND","HELLGOLDBLOND SATT","BLOND CLAIR DORÉ INTENSE","LOIRO CLARO DOURADO INTENSO","RUBIO CLARO DORADO INTENSO"],"9GG":["BIONDO CHIARISSIMO DORATO INTENSO","INTENSIVE GOLDEN VERY LIGHT BLOND","GOLDBLOND EXTRAHELL SATT","BLOND TRÈS CLAIR DORÉ INTENSE","LOIRO CLARISSIMO DOURADO INTENSO","RUBIO CLARÍSIMO DORADO INTENSO"],"6GC":["BIONDO SCURO ORO RAMATO","DARK GOLD COPPER BLOND","GOLDKUPFER DUNKELBLOND","BLOND FONCÉ OR CUIVRÉ","LOIRO ESCURO OURO COBRE","RUBIO OSCURO ORO COBRIZO"],"7GC":["BIONDO ORO RAMATO","GOLD COPPER BLOND","GOLDKUPFER BLOND","BLOND OR CUIVRÉ","LOIRO OURO COBRE","RUBIO ORO COBRIZO"],"8GC":["BIONDO CHIARO ORO RAMATO","LIGHT GOLD COPPER BLOND","GOLDKUPFER HELLBLOND","BLOND CLAIR OR CUIVRÉ","LOIRO CLARO OURO COBRE","RUBIO CLARO ORO COBRIZO"],"9GC":["BIONDO CHIARISSIMO ORO RAMATO","VERY LIGHT GOLD COPPER BLOND","GOLDKUPFER BLOND EXTRAHELL","BLOND TRÈS CLAIR OR CUIVRÉ","LOIRO CLARÍSSIMO OURO COBRE","RUBIO CLARÍSIMO ORO COBRIZO"],"4C":["CASTANO RAME","COPPER BROWN","KUPFER BRAUN","CHÂTAIN CUIVRÉ","CASTANHO COBRE","CASTAÑO COBRIZO"],"5C":["CASTANO CHIARO RAME","LIGHT COPPER BROWN","KUPFER BRAUN HELL","CHÂTAIN CLAIR CUIVRÉ","CASTANHO CLARO COBRE","CASTAÑO CLARO COBRIZO"],"6C":["BIONDO SCURO RAME","DARK COPPER BLOND","KUPFER BLOND DUNKEL","BLOND FONCÉ CUIVRÉ","LOIRO ESCURO COBRE","RUBIO OSCURO COBRIZO"],"7C":["BIONDO RAME","COPPER BLOND","KUPFERBLOND","BLOND CUIVRÉ","LOIRO COBRE","RUBIO COBRIZO"],"7CC":["BIONDO RAME SUPER INTENSO","SUPER INTENSE COPPER BLONDE","SUPER INTENSIVES KUPFERBLOND","BLOND CUIVRÉ SUPER INTENSE","LOIRO COBRE SUPER INTENSO","RUBIO COBRE SÚPER INTENSO"],"7CCC":["BIONDO RAME EXTRA INTENSO","EXTRA INTENSIVE COPPER BLOND","KUPFERBLOND EXTRA SATT","BLOND CUIVRÉ EXTRA INTENSE","LOIRO COBRE EXTRA INTENSO","RUBIO COBRIZO EXTRA INTENSO"],"7CR":["BIONDO RAME ROSSO","COPPER AUBURN BLOND","KUPFER ROTBLOND","BLOND CUIVRÉ ROUGE","LOIRO COBRE RUIVO","RUBIO COBRIZO ROJO"],"8C":["BIONDO CHIARO RAME","LIGHT COPPER BLOND","KUPFERBLOND HELL","BLOND CLAIR CUIVRÉ","LOIRO CLARO COBRE","RUBIO CLARO COBRIZO"],"9C":["BIONDO CHIARISSIMO RAME","VERY LIGHT COPPER BLOND","KUPFERBLOND EXTRAHELL","BLOND TRÈS CLAIR CUIVRÉ","LOIRO CLARISSIMO COBRE","RUBIO CLARÍSIMO COBRIZO"],"4RV":["CASTANO ROSSO VIOLA","AUBURN VIOLET BROWN","ROTBRAUN VIOLETT","CHÂTAIN ROUGE IRISÉ","CASTANHO RUIVO ROXO","CASTAÑO ROJO VIOLETA"],"5R":["CASTANO CHIARO ROSSO","LIGHT AUBURN BROWN","ROT HELLBRAUN","CHÂTAIN CLAIR ROUGE","CASTANHO CLARO RUIVO","CASTAÑO CLARO ROJO"],"5RRR":["CASTANO CHIARO ROSSO EXTRA INTENSO","EXTRA INTENSIVE AUBURN LIGHT BROWN","ROT HELLBRAUN EXTRA SATT","CHÂTAIN CLAIR ROUGE EXTRA INTENSE","CASTANHO CLARO RUIVO EXTRA INTENSO","CASTAÑO CLARO ROJO EXTRA INTENSO"],"6RR":["BIONDO SCURO ROSSO INTENSO","INTENSIVE AUBURN DARK BLOND","ROT DUNKELBLOND SATT","BLOND FONCÉ ROUGE INTENSE","LOIRO ESCURO RUIVO INTENSO","RUBIO OSCURO ROJO INTENSO"],"6RRR":["BIONDO SCURO ROSSO EXTRA INTENSO","EXTRA INTENSIVE AUBURN DARK BLOND","ROT DUNKELBLOND EXTRA SATT","BLOND FONCÉ ROUGE EXTRA INTENSE","LOIRO ESCURO RUIVO EXTRA INTENSO","RUBIO OSCURO ROJO EXTRA INTENSO"],"7RR":["BIONDO ROSSO INTENSO","INTENSIVE AUBURN BLOND","ROTBLOND SATT","BLOND ROUGE INTENSE","LOIRO RUIVO INTENSO","RUBIO ROJO INTENSO"],"7RRR":["BIONDO ROSSO EXTRA INTENSO","EXTRA INTENSIVE AUBURN BLOND","ROTBLOND EXTRA SATT","BLOND ROUGE EXTRA INTENSE","LOIRO RUIVO EXTRA INTENSO","RUBIO ROJO EXTRA INTENSO"],"7RV":["BIONDO ROSSO VIOLA","AUBURN VIOLET BLOND","ROTBLOND VIOLETT","BLOND ROUGE IRISÉ","LOIRO RUIVO ROXO","RUBIO ROJO VIOLETA"],"4M":["CASTANO MOGANO","MAHOGANY BROWN","MAHAGONI BRAUN","CHÂTAIN ACAJOU","CASTANHO ACAJU","CASTAÑO CAOBA"],"5M":["CASTANO CHIARO MOGANO","LIGHT MAHOGANY BROWN","MAHAGONI HELLBRAUN","CHÂTAIN CLAIR ACAJOU","CASTANHO CLARO ACAJU","CASTAÑO CLARO CAOBA"],"5MM":["CASTANO CHIARO MOGANO INTENSO","INTENSIVE MAHOGANY LIGHT BROWN","MAHAGONI HELLBRAUN SATT","CHÂTAIN CLAIR ACAJOU INTENSE","CASTANHO CLARO ACAJU INTENSO","CASTAÑO CLARO CAOBA INTENSO"],"5MR":["CASTANO CHIARO MOGANO ROSSO","LIGHT MAHOGANY AUBURN BROWN","MAHAGONI ROT HELLBRAUN","CHÂTAIN CLAIR ACAJOU ROUGE","CASTANHO CLARO ACAJU RUIVO","CASTAÑO CLARO CAOBA ROJO"],"6M":["BIONDO SCURO MOGANO","DARK MAHOGANY BLOND","MAHAGONI DUNKELBLOND","BLOND FONCÉ ACAJOU","LOIRO ESCURO ACAJU","RUBIO OSCURO CAOBA"],"7M":["BIONDO MOGANO","MAHOGANY BLOND","MAHAGONI BLOND","BLOND ACAJOU","LOIRO ACAJU","RUBIO CAOBA"],"4VG":["CASTANO TABACCO","TOBACCO BROWN","TABAK BRAUN","CHÂTAIN TABAC","CASTANHO TABAC","CASTAÑO TABACO"],"5VG":["CASTANO CHIARO TABACCO","LIGHT TOBACCO BROWN","TABAK HELLBRAUN","CHÂTAIN CLAIR TABAC","CASTANHO CLARO TABAC","CASTAÑO CLARO TABACO"],"6VG":["BIONDO SCURO TABACCO","DARK TOBACCO BLOND","TABAK DUNKELBLOND","BLOND FONCÉ TABAC","LOIRO ESCURO TABAC","RUBIO OSCURO TABACO"],"7VG":["BIONDO TABACCO","TOBACCO BLOND","TABAK BLOND","BLOND TABAC","LOIRO TABAC","RUBIO TABACO"],"5GM":["CASTANO CHIARO CACAO","LIGHT COCOA BROWN","KAKAO HELLBRAUN","CHÂTAIN CLAIR CACAO","CASTANHO CLARO CACAU","CASTAÑO CLARO CACAO"],"6GM":["BIONDO SCURO CACAO","DARK COCOA BLOND","KAKAO DUNKELBLOND","BLOND FONCÉ CACAO","LOIRO ESCURO CACAU","RUBIO OSCURO CACAO"],"7GM":["BIONDO CACAO","COCOA BLOND","KAKAO BLOND","BLOND CACAO","LOIRO CACAU","RUBIO CACAO"],"4CHG":["MARRONE NOCCIOLA","HAZELNUT BROWN","HASELNUSSBRAUN","BRUN NOISETTE","AVELÃ CASTANHO","MARRÓN AVELLANA"],"5CHG":["CASTANO CHIARO NOCCIOLA","LIGHT HAZELNUT BROWN","HASELNUSS HELLBRAUN","CHÂTAIN CLAIR NOISETTE","CASTANHO CLARO AVELÃ","CASTAÑO CLARO AVELLANA"],"6CHG":["BIONDO SCURO NOCCIOLA","DARK HAZELNUT BLOND","HASELNUSS DUNKELBLOND","BLOND FONCÉ NOISETTE","LOIRO ESCURO AVELÃ","RUBIO OSCURO AVELLANA"],"7CHG":["BIONDO NOCCIOLA","HAZELNUT BLOND","HASELNUSS BLOND","BLOND NOISETTE","LOIRO AVELÃ","RUBIO AVELLANA"],"4CHA":["MARRONE CIOCCOLATO FREDDO","COOL CHOCOLATE BROWN","KÜHLES SCHOKOLADENBRAUN","BRUN CHOCOLAT FROID","CASTANHO CHOCOLATE FRESCO","MARRÓN CHOCOLATE FRESCO"],"5CHA":["MARRONE CHIARO CIOCCOLATO FREDDO","LIGHT BROWN COOL CHOCOLATE","HELLBRAUNE KÜHLE SCHOKOLADE","CHOCOLAT FRAIS BRUN CLAIR","CHOCOLATE FRESCO CASTANHO CLARO","CHOCOLATE FRESCO MARRÓN CLARO"],"6CHA":["BIONDO SCURO CIOCCOLATO FREDDO","DARK BLONDE COOL CHOCOLATE","DUNKELBLONDE KÜHLE SCHOKOLADE","BLOND FONCÉ CHOCOLAT FROID","CHOCOLATE FRESCO LOIRO ESCURO","RUBIO OSCURO CHOCOLATE FRESCO"],"7CHA":["BIONDO FREDDO CIOCCOLATO","COOL CHOCOLATE BLONDE","KÜHLES SCHOKOLADENBLOND","BLOND CHOCOLAT FROID","LOIRA CHOCOLATE FRESCA","RUBIO CHOCOLATE FRESCO"],"4CH":["CASTANO CIOCCOLATO","CHOCOLATE BROWN","SCHOKOLADE BRAUN","CHÂTAIN CHOCOLAT","CASTANHO CHOCOLATE","CASTAÑO CHOCOLATE"],"5CH":["CASTANO CHIARO CIOCCOLATO","LIGHT CHOCOLATE BROWN","SCHOKOLADE HELLBRAUN","CHÂTAIN CLAIR CHOCOLAT","CASTANHO CLARO CHOCOLATE","CASTAÑO CLARO CHOCOLATE"],"6CH":["BIONDO SCURO CIOCCOLATO","DARK CHOCOLATE BLOND","SCHOKOLADE DUNKELBLOND","BLOND FONCÉ CHOCOLAT","LOIRO ESCURO CHOCOLATE","RUBIO OSCURO CHOCOLATE"],"7CH":["BIONDO CIOCCOLATO","CHOCOLATE BLOND","SCHOKOLADE BLOND","BLOND CHOCOLAT","LOIRO CHOCOLATE","RUBIO CHOCOLATE"],"8CH":["BIONDO CHIARO CIOCCOLATO","LIGHT CHOCOLATE BLOND","SCHOKOLADE HELLBLOND","BLOND CLAIR CHOCOLAT","LOIRO CLARO CHOCOLATE","RUBIO CLARO CHOCOLATE"],"6MT":["BIONDO SCURO MATT","DARK MATT BLOND","DUNKELMATTBLOND","BLOND FONCÉ MATT","LOIRO ESCURO MATT","RUBIO OSCURO MATT"],"7MT":["BIONDO MATT","MATT BLOND","MATTBLOND","BLOND MATT","LOIRO MATT","RUBIO MATT"],"8MT":["BIONDO CHIARO MATT","LIGHT MATT BLOND","HELLMATTBLOND","BLOND CLAIR MATT","LOIRO CLARO MATT","RUBIO CLARO MATT"],"9MT":["BIONDO CHIARISSIMO MATT","VERY LIGHT MATT BLOND","MATTBLOND EXTRAHELL","BLOND TRÈS CLAIR MATT","LOIRO CLARISSIMO MATT","RUBIO CLARÍSIMO MATT"],"10HLN":["BIONDO NATURALE SUPERSCHIARENTE","SUPERLIFT NATURAL BLOND","PLATINBLOND NATÜRLICH SUPER AUFHELLER","BLOND NATUREL SUPER ÉCLAIRCISSANT","LOIRO NATURAL SUPER CLAREADOR","RUBIO NATURAL SUPER ACLARANTE"],"10HLA":["BIONDO CENERE SUPERSCHIARENTE","SUPERLIFT ASH BLOND","ASCH PLATINBLOND SUPER AUFHELLER","BLOND CENDRÉ SUPER ÉCLAIRCISSANT","LOIRO PRATEADO SUPER CLAREADOR","RUBIO CENIZO SUPER ACLARANTE"],"10HLAA":["BIONDO CENERE EXTRA SUPERSCHIARENTE","EXTRA SUPERLIFT ASH BLOND","EXTRA ASCH PLATIN BLOND SUPER AUFHELLER","BLOND CENDRÉ EXTRA SUPER ÉCLAIRCISSANT","LOIRO PRATEADO EXTRA SUPER CLAREADOR","RUBIO CENIZO EXTRA SUPER ACLARANTE"],"11HLN":["BIONDO NATURALE SUPER PLATINO","SUPERPLATINUM NATURAL BLOND","ULTRABLOND NATÜRLICH SUPER AUFHELLER","BLOND NATUREL SUPER PLATINE","LOIRO NATURAL SUPER PLATINADO","RUBIO NATURAL SUPER PLATINADO"],"11HLAA":["BIONDO CENERE SUPER PLATINO","SUPERPLATINUM ASH BLOND","ULTRAASCHBLOND SUPER AUFHELLER","BLOND CENDRÉ SUPER PLATINE","LOIRO PRATEADO SUPER PLATINADO","RUBIO CENIZO SUPER PLATINADO"],"11HLB":["BIONDO BEIGE SUPER PLATINO","SUPERPLATINUM BEIGE BLOND","ULTRABEIGEBLOND SUPER AUFHELLER","BLOND BEIGE SUPER PLATINE","LOIRO BEGE SUPER PLATINADO","RUBIO BEIGE SUPER PLATINADO"],"11HLG":["BIONDO DORATO SUPER PLATINO","SUPERPLATINUM GOLDEN BLOND","ULTRAGOLDBLOND SUPER AUFHELLER","BLOND DORÉ SUPER PLATINE","LOIRO DOURADO SUPER PLATINADO","RUBIO DORADO SUPER PLATINADO"],"12SHLN":["BIONDO NATURALE SUPER EXTRA PLATINO","EXTRA SUPERPLATINUM NATURAL BLOND","SUPERULTRABLOND NATÜRLICH SUPER AUFHELLER","BLOND NATUREL EXTRA SUPER PLATINE","LOIRO NATURAL EXTRA SUPER PLATINADO","RUBIO NATURAL EXTRA SUPER PLATINADO"],"12SHLA":["BIONDO SPECIALE CENERE INTENSO","SPECIAL BLOND INTENSIVE ASH","SPEZIALASCHBLOND SATT","BLOND SPÉCIAL CENDRÉ INTENSE","LOIRO ESPECIAL PRATEADO INTENSO","RUBIO ESPECIAL CENIZO INTENSO"],"12SHLP":["BIONDO SPECIALE CENERE PERLA","SPECIAL BLOND PEARL ASH","PERLE-ASCH SPEZIALBLOND","BLOND SPÉCIAL CENDRÉ PERLE","LOIRO ESPECIAL PRATEADO PÉROLA","RUBIO ESPECIAL CENIZO PERLA"],"12SHLNV":["BIONDO SPECIALE LILLA","SPECIAL BLOND LILAC","LILA SPEZIAL BLOND","BLOND SPÉCIAL LILAS","LOIRO ESPECIAL LILÁS","RUBIO ESPECIAL LILA"],"12SHLAV":["BIONDO SPECIALE CENERE LILLA","SPECIAL BLOND ASH LILAC","LILA ASCH SPEZIAL BLOND","BLOND SPÉCIAL CENDRÉ LILAS","LOIRO ESPECIAL PRATEADO LILÁS","RUBIO ESPECIAL CENIZO LILA"],"7MV":["BIONDO VIOLA METALLIZZATO","BLONDE METALLIC VIOLET","BLONDES METALLISCHES VIOLETT","BLOND VIOLET MÉTALLIQUE","LOIRO VIOLETA METÁLICO","RUBIO VIOLETA METALIZADO"],"8MS":["BIONDO CHIARO SILVER METALLIZZATO","LIGHT BLONDE METALLIC SILVER","HELLBLONDES METALLSILBER","BLOND CLAIR MÉTALLISÉ ARGENT","PRATA METÁLICA LOURA CLARA","RUBIO CLARO METALIZADO PLATA"],"9MR":["BIONDO CHIARISSIMO ROSA METALLIZZATO","VERY LIGHT BLONDE METALLIC ROSE","SEHR HELLBLONDE METALLISCHE ROSE","ROSE MÉTALLIQUE BLOND TRÈS CLAIR","ROSA METÁLICA LOIRA MUITO CLARA","ROSA METALIZADO RUBIO MUY CLARO"],"YELLOW":["GIALLO","YELLOW","GELB","JAUNE","AMARELO","AMARILLO"],"RED":["ROSSO","RED","ROT","ROUGE","VERMELHO","ROJO"],"VIOLET":["VIOLA","VIOLET","VIOLETT","VIOLET","ROXO","VIOLETA"],"BLUE":["BLU","BLUE","BLAU","BLEU","AZULADO","AZUL"],"GREEN":["VERDE","GREEN","GRÜN","VERT","VERDE","VERDE"],"CLEAR":["NEUTRO","CLEAR","NEUTRAL","NEUTRE","NEUTRO","NEUTRO"],"1SW":["BIANCO","WHITE","WEISS","BLANC","BRANCO","BLANCO"],"1SG":["ARGENTO","SILVER","SILBER","ARGENT","PRATA","PLATA"],"1SV":["PERLA","PEARL","PERLE","PERLE","PÉROLA","PERLA"],"LIGHT GREY":["GRIGIO CHIARO","LIGHT GREY","HELLGRAU","GRIS CLAIR","CINZENTO CLARO","GRIS CLARO"],"DARK GREY":["GRIGIO SCURO","DARK GREY","DUNKELGRAU","GRIS FONCÉ","CINZENTO ESCURO","GRIS OSCURO"]};
+
+  /* Flatten into wedges: {code, color, ink, names[6]} */
+  var SLICES = [];
+  FAMILIES.forEach(function(f){
+    var color = f[0], ink = textColorFor(color);
+    f[1].forEach(function(code){
+      SLICES.push({ code:code, color:color, ink:ink, names:(NAMES[code]||[code,code,code,code,code,code]) });
+    });
+  });
+  var N = SLICES.length;
+  var SLICE = (Math.PI*2)/N;
+
+  function textColorFor(hex){
+    var r=parseInt(hex.substr(1,2),16), g=parseInt(hex.substr(3,2),16), b=parseInt(hex.substr(5,2),16);
+    var L = (0.299*r + 0.587*g + 0.114*b)/255;
+    return L>0.62 ? "#1a1a1a" : "#ffffff";
+  }
+
+  /* ====== Canvas / geometry ====== */
+  var canvas = document.getElementById("wheel");
+  var ctx = canvas.getContext("2d");
+  var W=0, H=0, DPR=1;
+  var cx=0, cy=0, R=0;
+  var POINTER_GAP = 26;
+
+  /* radial layout of text (measured inward from the rim) */
+  var CODE_FONT=15, NAME_FONT=11;
+  var CODE_OFF=26;          // code centre = R - CODE_OFF (near the rim / arrow)
+  var CODE_MAXLEN=44;       // code kept inside its own band near the rim
+  var NAME_START=88;        // first (outermost, ES) name centre = R - NAME_START
+  var NAME_STEP=76;         // radial gap between stacked names
+  var NAME_MAXLEN=64;       // max radial length before horizontal condensing
+
+  function layout(){
+    DPR = Math.min(window.devicePixelRatio||1, 2);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = Math.round(W*DPR); canvas.height = Math.round(H*DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    R = Math.max(Math.max(W,H)*1.2, 940);
+    cx = W/2;
+    cy = POINTER_GAP + R;   // centre well below the screen: only the top arc shows
+  }
+
+  /* ====== State / physics ====== */
+  var rot = -SLICE*0.5;
+  var vel = 0;
+  var dragging = false;
+  var awaitingResult = false;
+  var lastPointerAngle = 0, lastMoveTime = 0;
+  var downX=0, downY=0, downTime=0, movedDist=0;
+  var pointerId = null;
+
+  var FRICTION = 0.986;
+  var STOP_VEL = 0.0016;
+  var TOP = -Math.PI/2;
+
+  function winnerIndex(rotation){
+    var i = Math.round((TOP - rotation)/SLICE - 0.5);
+    return ((i % N) + N) % N;
+  }
+  function pointAngle(x,y){ return Math.atan2(y - cy, x - cx); }
+  function sliceAt(x,y){
+    var dx=x-cx, dy=y-cy, dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist < R*0.30 || dist > R) return -1;
+    var i = Math.floor(((Math.atan2(dy,dx) - rot)/SLICE));
+    return ((i % N) + N) % N;
+  }
+
+  /* draw one word radially, centred at radius rc, condensed to fit maxLen */
+  function radialWord(text, rc, font, ink, maxLen){
+    ctx.font = font;
+    var lw = ctx.measureText(text).width;
+    var sx = (lw>maxLen) ? maxLen/lw : 1;
+    ctx.save();
+    ctx.translate(rc, 0);          // already rotated to the slice mid-angle
+    if(sx<1) ctx.scale(sx,1);
+    ctx.fillStyle = ink;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+  }
+
+  /* static glass sheen for one wedge: highlight offset toward one edge, darker edges */
+  function glossWedge(a0,a1){
+    var rr = R*0.82;
+    var ax = cx + rr*Math.cos(a0), ay = cy + rr*Math.sin(a0);
+    var bx = cx + rr*Math.cos(a1), by = cy + rr*Math.sin(a1);
+    var g = ctx.createLinearGradient(ax,ay,bx,by);
+    g.addColorStop(0.00, "rgba(0,0,0,0.30)");
+    g.addColorStop(0.12, "rgba(255,255,255,0.06)");
+    g.addColorStop(0.28, "rgba(255,255,255,0.46)");   // main shine
+    g.addColorStop(0.40, "rgba(255,255,255,0.12)");
+    g.addColorStop(0.62, "rgba(255,255,255,0.00)");
+    g.addColorStop(1.00, "rgba(0,0,0,0.34)");
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,a0,a1); ctx.closePath();
+    ctx.fillStyle = g; ctx.fill();
+  }
+
+  /* ====== Draw ====== */
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    var winner = winnerIndex(rot);
+    // angular half-width of the visible top cap (+ margin) -> only label these wedges
+    var capHalf = Math.asin(Math.min(1,(W*0.62)/R)) + 0.06;
+
+    var glossHalf = 0.72;   // draw the glass sheen over every visible wedge (~±41°)
+    for(var i=0;i<N;i++){
+      var a0 = rot + i*SLICE, a1 = a0 + SLICE, s = SLICES[i];
+      var mid = a0 + SLICE/2;
+      var d = mid - TOP; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
+
+      // base colour
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,a0,a1); ctx.closePath();
+      ctx.fillStyle = s.color; ctx.fill();
+
+      // static "glass" sheen layer on top of the wedge
+      if(Math.abs(d) < glossHalf) glossWedge(a0,a1);
+
+      // thicker separators, contrasting with the wedge colour (drawn over the sheen)
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,a0,a1); ctx.closePath();
+      ctx.strokeStyle = "rgba(255,255,255,.85)";
+      ctx.lineWidth = 3; ctx.stroke();
+
+      if(Math.abs(d) > capHalf) continue;   // outside the visible cap: skip labels
+
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.rotate(mid);
+      // 6 names, inner->outer = IT,EN,DE,FR,PT,ES  (k=0..5)
+      for(var k=0;k<6;k++){
+        var rc = R - NAME_START - (5-k)*NAME_STEP;   // ES nearest the code, IT innermost
+        radialWord(s.names[k], rc, "500 "+NAME_FONT+"px 'Helvetica Neue', Arial, sans-serif", s.ink, NAME_MAXLEN);
+      }
+      // code nearest the rim (nearest the arrow)
+      radialWord(s.code, R-CODE_OFF, "700 "+CODE_FONT+"px 'Helvetica Neue', Arial, sans-serif", s.ink, CODE_MAXLEN);
+      ctx.restore();
+    }
+
+    // highlight the winning wedge on top
+    var wa0 = rot + winner*SLICE, wa1 = wa0 + SLICE;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,wa0,wa1); ctx.closePath();
+    ctx.strokeStyle = "rgba(255,255,255,.95)"; ctx.lineWidth = 3.5; ctx.stroke();
+  }
+
+  /* ====== Loop ====== */
+  function tick(){
+    if(!dragging && vel!==0){
+      rot += vel; vel *= FRICTION;
+      if(Math.abs(vel) < STOP_VEL){
+        vel = 0;
+        if(awaitingResult){ awaitingResult = false; openSchedina(winnerIndex(rot)); }
+      }
+    }
+    draw();
+    requestAnimationFrame(tick);
+  }
+
+  /* ====== Schedina (enlarged card) ====== */
+  var overlay = document.getElementById("cioccaOverlay");
+  var overlayImg = overlay.querySelector("img");
+  var winCodeEl = document.getElementById("winCode");
+  var winNameEl = document.getElementById("winName");
+
+  function openSchedina(i){
+    var s = SLICES[i];
+    overlayImg.src = "images/" + encodeURIComponent(s.code) + ".jpg";
+    overlayImg.alt = s.code;
+    winCodeEl.textContent = s.code;
+    winNameEl.textContent = s.names[1]; // English name
+    overlay.classList.add("show");
+  }
+  function closeSchedina(){ overlay.classList.remove("show"); }
+
+  overlay.addEventListener("click", function(e){
+    if(e.target.id === "againBtn") return;
+    closeSchedina();
+  });
+  document.getElementById("againBtn").addEventListener("click", function(e){
+    e.stopPropagation(); closeSchedina(); spin();
+  });
+
+  /* ====== Input ====== */
+  function getXY(e){ var r = canvas.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
+
+  canvas.addEventListener("pointerdown", function(e){
+    if(pointerId !== null) return;
+    pointerId = e.pointerId; canvas.setPointerCapture(pointerId);
+    var p = getXY(e);
+    dragging = true; canvas.classList.add("dragging"); vel = 0;
+    lastPointerAngle = pointAngle(p.x,p.y); lastMoveTime = performance.now();
+    downX=p.x; downY=p.y; downTime=lastMoveTime; movedDist=0;
+  });
+  canvas.addEventListener("pointermove", function(e){
+    if(!dragging || e.pointerId !== pointerId) return;
+    var p = getXY(e);
+    var a = pointAngle(p.x,p.y), d = a - lastPointerAngle;
+    if(d > Math.PI) d -= Math.PI*2; if(d < -Math.PI) d += Math.PI*2;
+    rot += d;
+    var now = performance.now(), dt = Math.max(1, now - lastMoveTime);
+    vel = d * (16/dt);
+    lastPointerAngle = a; lastMoveTime = now;
+    movedDist = Math.max(movedDist, Math.hypot(p.x-downX, p.y-downY));
+  });
+  function endDrag(e){
+    if(e.pointerId !== pointerId) return;
+    dragging = false; canvas.classList.remove("dragging");
+    try{ canvas.releasePointerCapture(pointerId); }catch(_){}
+    pointerId = null;
+    if(movedDist < 8 && (performance.now()-downTime) < 350){
+      var p = getXY(e), i = sliceAt(p.x, p.y);
+      if(i>=0){ openSchedina(i); vel = 0; return; }
+    }
+    if(Math.abs(vel) > STOP_VEL*3){
+      var maxV = 0.55; if(vel>maxV)vel=maxV; if(vel<-maxV)vel=-maxV;
+      awaitingResult = true;
+    }
+  }
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+
+  function spin(){ vel = 0.34 + Math.random()*0.18; awaitingResult = true; }
+  document.getElementById("spinBtn").addEventListener("click", spin);
+
+  /* ====== Start ====== */
+  function resize(){ layout(); draw(); }
+  window.addEventListener("resize", resize);
+  window.addEventListener("orientationchange", function(){ setTimeout(resize,120); });
+  layout();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

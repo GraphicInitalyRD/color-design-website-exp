@@ -79,7 +79,10 @@
             '<a href="styling-treatments.html">Styling Treatments</a>' +
           '</div>' +
         '</div>' +
-        menuLink('color-chart','color-chart.html','Color Chart',active) +
+        '<div class="menu-row">' +
+          menuLink('color-chart','color-chart.html','Color Chart',active) +
+          '<a class="wheel-btn'+(active==='wheel'?' active':'')+'" href="ruota-colori.html" data-nav="wheel">Hair Color Wheel</a>' +
+        '</div>' +
         menuLink('brochures','brochures.html','Brochures',active) +
         menuLink('sds','sds-files.html','SDS Files',active) +
         menuLink('distributors','distributors.html','Distributors',active) +

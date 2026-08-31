@@ -88,6 +88,13 @@ body{ font-family:var(--font-main); color:var(--text-white); -webkit-font-smooth
 
 .menu a:hover, .menu a.active, .menu-toggle:hover{ background:#3a3a3c; }
 
+/* riga Color Chart + tasto Hair Color Wheel affiancati */
+.menu-row{ display:flex; gap:8px; align-items:stretch; }
+.menu-row > a{ flex:1 1 0; }
+.wheel-btn{ display:flex; align-items:center; justify-content:center; text-align:center;
+  font-size:11px; letter-spacing:.4px; line-height:1.2; }
+
+
 /* voce PRODUCTS espandibile + sotto-menu incolonnato */
   .menu-group{ display:flex; flex-direction:column; }
 
