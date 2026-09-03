@@ -68,7 +68,7 @@ body{ font-family:var(--font-main); color:var(--text-white); -webkit-font-smooth
 
 .topbar.open + .menu{ max-height:1000px; padding:12px; }
 
-.menu a, .menu-toggle{
+.menu a, .menu-toggle, .menu-back{
     display:block;
     width:100%;
     color:var(--text-white);
@@ -86,13 +86,18 @@ body{ font-family:var(--font-main); color:var(--text-white); -webkit-font-smooth
     cursor:pointer;
   }
 
-.menu a:hover, .menu a.active, .menu-toggle:hover{ background:#3a3a3c; }
+.menu a:hover, .menu a.active, .menu-toggle:hover, .menu-back:hover{ background:#3a3a3c; }
 
 /* riga Color Chart + tasto Hair Color Wheel affiancati */
 .menu-row{ display:flex; gap:8px; align-items:stretch; }
 .menu-row > a{ flex:1 1 0; }
 .wheel-btn{ display:flex; align-items:center; justify-content:center; text-align:center;
   font-size:11px; letter-spacing:.4px; line-height:1.2; }
+
+/* pulsante PREVIOUS: freccia sinistra + testo centrati */
+.menu-back{ display:flex; align-items:center; justify-content:center; gap:8px;
+  width:calc(50% - 4px); justify-self:center; }  /* stretto come i tasti Color Chart/Wheel e centrato sotto Home */
+.menu-back .back-arrow{ font-size:14px; line-height:1; }
 
 
 /* voce PRODUCTS espandibile + sotto-menu incolonnato */

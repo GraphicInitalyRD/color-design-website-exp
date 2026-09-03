@@ -67,6 +67,7 @@
         titleEl +
       '</div>' +
       '<nav class="menu" id="menu">' +
+        '<button class="menu-back" id="menuBack" type="button" aria-label="Torna alla pagina precedente"><span class="back-arrow" aria-hidden="true">&#10094;</span><span>Previous</span></button>' +
         menuLink('home','index.html','Home',active) +
         '<div class="menu-group">' +
           '<button class="menu-toggle" id="productsToggle" type="button" aria-expanded="false"><span>Products</span><span class="caret">&#9662;</span></button>' +
@@ -109,6 +110,15 @@
   var burger = document.getElementById('hamburger');
   if (burger && topbar) {
     burger.addEventListener('click', function(){ topbar.classList.toggle('open'); });
+  }
+
+  /* pulsante PREVIOUS: torna alla pagina precedente */
+  var backBtn = document.getElementById('menuBack');
+  if (backBtn) {
+    backBtn.addEventListener('click', function(){
+      if (history.length > 1) { history.back(); }
+      else { window.location.href = 'index.html'; }
+    });
   }
   var pToggle = document.getElementById('productsToggle');
   if (pToggle) {
