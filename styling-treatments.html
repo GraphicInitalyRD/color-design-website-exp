@@ -6,51 +6,16 @@
 <title>Styling Treatments - Color Design</title>
 <link rel="stylesheet" href="site.css">
 <style>
-  /* ===== pagina Styling Treatments: riquadro statico (pagina della brochure) ===== */
+  /* ===== pagina Styling Treatments ===== */
   .styling-main{ background:#ffffff; font-size:0; }
-  .styling-img{ display:block; width:100%; height:auto; }
 
-  /* ===== carosello prodotti: loop infinito automatico + trascinamento a dito + zoom al tocco ===== */
-  .prod-strip-wrap{ background:#f2f2f2; overflow:hidden; }
-  .prod-track{
-    display:flex; gap:10px; padding:14px; width:max-content;
-    will-change:transform; touch-action:pan-y; cursor:grab;
-    -webkit-user-select:none; user-select:none;
-  }
-  .prod-track.dragging{ cursor:grabbing; }
-  .prod-track .prod-tile{
-    flex:0 0 auto; width:104px; height:170px; border-radius:4px;
-    object-fit:contain; background:#ffffff; display:block;
-    padding:6px; box-sizing:border-box; cursor:pointer;
-    -webkit-user-drag:none; user-drag:none;
-  }
-  /* segnaposto (in attesa delle 4 immagini) */
-  .prod-track .prod-ph{
-    flex:0 0 auto; width:104px; height:170px; border-radius:4px;
-    background:#e2e2e2; color:#9a9a9a; box-sizing:border-box;
-    border:1px dashed #c4c4c4;
-    display:flex; align-items:center; justify-content:center; text-align:center;
-    font-family:var(--font-main); font-size:9px; letter-spacing:1px; text-transform:uppercase;
-  }
-  /* ingrandimento al clic: immagine intera centrata sulla pagina */
-  .prod-overlay{
-    position:fixed; inset:0; display:none;
-    align-items:center; justify-content:center;
-    background:rgba(0,0,0,.55); z-index:1000; cursor:zoom-out;
-  }
-  .prod-overlay.show{ display:flex; }
-  .prod-overlay img{
-    max-width:82vw; max-height:82vh; object-fit:contain;
-    border-radius:8px; box-shadow:0 10px 34px rgba(0,0,0,.5); background:#fff;
-  }
-
-  /* ===== carosello elettronico (2 pagine brochure): stessa larghezza del riquadro in cima ===== */
+  /* ===== riquadro superiore: carosello elettronico a 3 immagini (dissolvenza automatica) ===== */
   .hero-carousel{
     position:relative; width:100%; overflow:hidden;
     background:#ffffff; font-size:0; line-height:0;
     -webkit-user-select:none; user-select:none;
   }
-  /* mantiene l'altezza stabile: rapporto delle pagine brochure (1988x1406) */
+  /* mantiene l'altezza stabile: rapporto comune alle 3 immagini (~1.414) */
   .hc-viewport{ position:relative; width:100%; aspect-ratio:1988 / 1406; }
   .hc-slide{
     position:absolute; inset:0;
@@ -89,6 +54,32 @@
     .hc-prev{ left:8px; } .hc-next{ right:8px; }
     .hc-dots{ bottom:9px; }
   }
+
+  /* ===== carosello prodotti: loop infinito automatico + trascinamento a dito + zoom al tocco ===== */
+  .prod-strip-wrap{ background:#f2f2f2; overflow:hidden; }
+  .prod-track{
+    display:flex; gap:10px; padding:14px; width:max-content;
+    will-change:transform; touch-action:pan-y; cursor:grab;
+    -webkit-user-select:none; user-select:none;
+  }
+  .prod-track.dragging{ cursor:grabbing; }
+  .prod-track .prod-tile{
+    flex:0 0 auto; width:104px; height:170px; border-radius:4px;
+    object-fit:contain; background:#ffffff; display:block;
+    padding:6px; box-sizing:border-box; cursor:pointer;
+    -webkit-user-drag:none; user-drag:none;
+  }
+  /* ingrandimento al clic: immagine intera centrata sulla pagina */
+  .prod-overlay{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(0,0,0,.55); z-index:1000; cursor:zoom-out;
+  }
+  .prod-overlay.show{ display:flex; }
+  .prod-overlay img{
+    max-width:82vw; max-height:82vh; object-fit:contain;
+    border-radius:8px; box-shadow:0 10px 34px rgba(0,0,0,.5); background:#fff;
+  }
 </style>
 </head>
 <body>
@@ -97,27 +88,14 @@
     <div id="site-header" data-title="STYLING TREATMENTS" data-active="products"></div>
 
     <main class="styling-main">
-      <img class="styling-img" src="images/styling-treatments.jpg" alt="Styling Treatments">
 
-      <div class="prod-strip-wrap">
-        <div class="prod-track" id="prodTrack">
-          <!-- copia 1 -->
-          <img class="prod-tile" src="images/strong-touch.jpg" alt="Strong Touch - Hairspray Extra Strong" draggable="false">
-          <img class="prod-tile" src="images/mousse-style.jpg" alt="Mousse Style" draggable="false">
-          <img class="prod-tile" src="images/natural-touch.jpg" alt="Natural Touch - Mousse" draggable="false">
-          <img class="prod-tile" src="images/robust-touch.jpg" alt="Robust Touch - Mousse" draggable="false">
-          <!-- copia 2 (per il loop continuo) -->
-          <img class="prod-tile" src="images/strong-touch.jpg" alt="Strong Touch - Hairspray Extra Strong" draggable="false" aria-hidden="true">
-          <img class="prod-tile" src="images/mousse-style.jpg" alt="Mousse Style" draggable="false" aria-hidden="true">
-          <img class="prod-tile" src="images/natural-touch.jpg" alt="Natural Touch - Mousse" draggable="false" aria-hidden="true">
-          <img class="prod-tile" src="images/robust-touch.jpg" alt="Robust Touch - Mousse" draggable="false" aria-hidden="true">
-        </div>
-      </div>
-
-      <!-- ===== carosello elettronico: 2 pagine della brochure, a piena larghezza ===== -->
-      <div class="hero-carousel" id="heroCarousel" aria-roledescription="carousel" aria-label="Styling Treatments - brochure">
+      <!-- ===== riquadro superiore: carosello a 3 immagini ===== -->
+      <div class="hero-carousel" id="heroCarousel" aria-roledescription="carousel" aria-label="Styling Treatments">
         <div class="hc-viewport">
           <div class="hc-slide active">
+            <img src="images/styling-treatments.jpg" alt="Styling Treatments" draggable="false">
+          </div>
+          <div class="hc-slide">
             <img src="images/styling-carousel-1.jpg" alt="Intensive Treatment with Hyaluronic Acid - UNIQUE" draggable="false">
           </div>
           <div class="hc-slide">
@@ -130,6 +108,27 @@
 
         <div class="hc-dots" id="hcDots" role="tablist" aria-label="Seleziona immagine"></div>
       </div>
+
+      <!-- ===== carosello prodotti (scorrimento + zoom) ===== -->
+      <div class="prod-strip-wrap">
+        <div class="prod-track" id="prodTrack">
+          <!-- copia 1 -->
+          <img class="prod-tile" src="images/strong-touch.jpg" alt="Strong Touch - Hairspray Extra Strong" draggable="false">
+          <img class="prod-tile" src="images/mousse-style.jpg" alt="Mousse Style" draggable="false">
+          <img class="prod-tile" src="images/natural-touch.jpg" alt="Natural Touch - Mousse" draggable="false">
+          <img class="prod-tile" src="images/robust-touch.jpg" alt="Robust Touch - Mousse" draggable="false">
+          <img class="prod-tile" src="images/unique-fluid.jpg" alt="Unique - Hyaluronic Fluid" draggable="false">
+          <img class="prod-tile" src="images/the-superbe.jpg" alt="The Superbe - Mask Leave-in" draggable="false">
+          <!-- copia 2 (per il loop continuo) -->
+          <img class="prod-tile" src="images/strong-touch.jpg" alt="Strong Touch - Hairspray Extra Strong" draggable="false" aria-hidden="true">
+          <img class="prod-tile" src="images/mousse-style.jpg" alt="Mousse Style" draggable="false" aria-hidden="true">
+          <img class="prod-tile" src="images/natural-touch.jpg" alt="Natural Touch - Mousse" draggable="false" aria-hidden="true">
+          <img class="prod-tile" src="images/robust-touch.jpg" alt="Robust Touch - Mousse" draggable="false" aria-hidden="true">
+          <img class="prod-tile" src="images/unique-fluid.jpg" alt="Unique - Hyaluronic Fluid" draggable="false" aria-hidden="true">
+          <img class="prod-tile" src="images/the-superbe.jpg" alt="The Superbe - Mask Leave-in" draggable="false" aria-hidden="true">
+        </div>
+      </div>
+
     </main>
 
     <div id="site-footer"></div>
@@ -138,14 +137,80 @@
 
   <script src="site.js"></script>
 
-  <!-- lightbox per l'ingrandimento delle immagini -->
+  <!-- lightbox per l'ingrandimento delle immagini prodotto -->
   <div class="prod-overlay" id="prodOverlay"><img alt=""></div>
 
   <script>
-  /* Carosello prodotti: scorrimento automatico in loop + trascinamento col dito + tap per ingrandire.
-     NOTA: ora ci sono 4 segnaposto. Quando avrai le immagini, sostituisci ogni
-     <div class="prod-ph">...</div> con <img class="prod-tile" src="images/NOME.jpg" alt="..." draggable="false">
-     (in entrambe le copie) e lo zoom al tocco funzionerà in automatico. */
+  /* Riquadro superiore: carosello a dissolvenza (3 immagini) + frecce + pallini.
+     Pausa al passaggio del mouse, swipe col dito su mobile. */
+  (function(){
+    var root  = document.getElementById('heroCarousel');
+    if(!root) return;
+    var slides = Array.prototype.slice.call(root.querySelectorAll('.hc-slide'));
+    var dotsWrap = document.getElementById('hcDots');
+    var prevBtn = document.getElementById('hcPrev');
+    var nextBtn = document.getElementById('hcNext');
+    var INTERVAL = 2000;      /* tempo di permanenza di ogni immagine (ms) */
+    var idx = 0, timer = null;
+
+    var dots = slides.map(function(_, i){
+      var b = document.createElement('button');
+      b.className = 'hc-dot' + (i === 0 ? ' active' : '');
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-label', 'Immagine ' + (i + 1));
+      b.addEventListener('click', function(){ go(i, true); });
+      dotsWrap.appendChild(b);
+      return b;
+    });
+
+    function show(n){
+      idx = (n + slides.length) % slides.length;
+      slides.forEach(function(s, i){ s.classList.toggle('active', i === idx); });
+      dots.forEach(function(d, i){ d.classList.toggle('active', i === idx); });
+    }
+    function go(n, userAction){
+      show(n);
+      if(userAction){ restart(); }
+    }
+    function next(){ show(idx + 1); }
+
+    function start(){ stop(); timer = setInterval(next, INTERVAL); }
+    function stop(){ if(timer){ clearInterval(timer); timer = null; } }
+    function restart(){ start(); }
+
+    prevBtn.addEventListener('click', function(){ go(idx - 1, true); });
+    nextBtn.addEventListener('click', function(){ go(idx + 1, true); });
+
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+
+    var sx = 0, sy = 0, swiping = false;
+    root.addEventListener('touchstart', function(e){
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiping = true; stop();
+    }, {passive:true});
+    root.addEventListener('touchend', function(e){
+      if(!swiping) return; swiping = false;
+      var dx = e.changedTouches[0].clientX - sx;
+      var dy = e.changedTouches[0].clientY - sy;
+      if(Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)){
+        go(dx < 0 ? idx + 1 : idx - 1, true);
+      } else {
+        start();
+      }
+    }, {passive:true});
+
+    document.addEventListener('visibilitychange', function(){
+      if(document.hidden){ stop(); } else { start(); }
+    });
+
+    show(0);
+    start();
+  })();
+  </script>
+
+  <script>
+  /* Carosello prodotti: scorrimento automatico in loop + trascinamento col dito + tap per ingrandire. */
   (function(){
     var track   = document.getElementById('prodTrack');
     var overlay = document.getElementById('prodOverlay');
@@ -171,7 +236,6 @@
       }
     }
 
-    /* ciclo di animazione: avanza da solo quando non si trascina e non si tiene premuto */
     function tick(now){
       var dt = (now - last) / 1000; last = now;
       if(!dragging && !holding){ offset -= SPEED * dt; norm(); apply(); }
@@ -179,13 +243,12 @@
     }
     requestAnimationFrame(tick);
 
-    /* gestione trascinamento (pointer = mouse + touch) con blocco d'asse */
     var pointerActive = false, decided = false, horizontal = false, dragging = false, holding = false;
     var startX = 0, startY = 0, startOffset = 0, tile = null;
 
     track.addEventListener('pointerdown', function(e){
       pointerActive = true; decided = false; horizontal = false; dragging = false;
-      holding = true;                 /* ferma subito il carosello: l'immagine non scivola da sotto il dito */
+      holding = true;
       startX = e.clientX; startY = e.clientY; startOffset = offset;
       tile = e.target.closest('.prod-tile');
     });
@@ -195,18 +258,18 @@
       if(!decided){
         if(Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP){
           decided = true;
-          horizontal = Math.abs(dx) >= Math.abs(dy);   /* orizzontale = trascino il carosello */
+          horizontal = Math.abs(dx) >= Math.abs(dy);
           if(horizontal){
             dragging = true;
             track.classList.add('dragging');
             track.setPointerCapture(e.pointerId);
           } else {
-            holding = false;          /* movimento verticale: lascio scorrere la pagina e riparte il loop */
+            holding = false;
           }
         }
       }
       if(horizontal){
-        offset = startOffset + dx;    /* il dito muove/accelera il carosello */
+        offset = startOffset + dx;
         norm(); apply();
       }
     });
@@ -214,16 +277,16 @@
     function endPointer(e){
       if(!pointerActive) return;
       var dx = e.clientX - startX, dy = e.clientY - startY;
-      var isTap = Math.abs(dx) < TAP_SLOP && Math.abs(dy) < TAP_SLOP;   /* tocco quasi fermo = tap */
+      var isTap = Math.abs(dx) < TAP_SLOP && Math.abs(dy) < TAP_SLOP;
       pointerActive = false;
       dragging = false;
       holding = false;
-      last = performance.now();       /* evita salti quando riparte l'automatico */
+      last = performance.now();
       track.classList.remove('dragging');
       if(isTap && tile){
         overlayImg.src = tile.src; overlayImg.alt = tile.alt;
         overlay.classList.add('show');
-        openedAt = performance.now();   /* momento di apertura: ignora il "click fantasma" del touch */
+        openedAt = performance.now();
       }
       tile = null;
     }
@@ -231,84 +294,10 @@
     track.addEventListener('pointercancel', endPointer);
     track.addEventListener('dragstart', function(e){ e.preventDefault(); });
 
-    /* chiusura zoom (il carosello sotto continua a scorrere) */
     overlay.addEventListener('click', function(){
-      if(performance.now() - openedAt < 400) return;   /* scarta il click fantasma post-tap su touch */
+      if(performance.now() - openedAt < 400) return;
       overlay.classList.remove('show');
     });
-  })();
-  </script>
-
-  <script>
-  /* Carosello elettronico (2 pagine brochure): dissolvenza automatica + frecce + pallini.
-     Si mette in pausa al passaggio del mouse e riparte quando esci. */
-  (function(){
-    var root  = document.getElementById('heroCarousel');
-    if(!root) return;
-    var slides = Array.prototype.slice.call(root.querySelectorAll('.hc-slide'));
-    var dotsWrap = document.getElementById('hcDots');
-    var prevBtn = document.getElementById('hcPrev');
-    var nextBtn = document.getElementById('hcNext');
-    var INTERVAL = 2000;      /* tempo di permanenza di ogni immagine (ms) */
-    var idx = 0, timer = null;
-
-    /* crea i pallini */
-    var dots = slides.map(function(_, i){
-      var b = document.createElement('button');
-      b.className = 'hc-dot' + (i === 0 ? ' active' : '');
-      b.type = 'button';
-      b.setAttribute('role', 'tab');
-      b.setAttribute('aria-label', 'Immagine ' + (i + 1));
-      b.addEventListener('click', function(){ go(i, true); });
-      dotsWrap.appendChild(b);
-      return b;
-    });
-
-    function show(n){
-      idx = (n + slides.length) % slides.length;
-      slides.forEach(function(s, i){ s.classList.toggle('active', i === idx); });
-      dots.forEach(function(d, i){ d.classList.toggle('active', i === idx); });
-    }
-    function go(n, userAction){
-      show(n);
-      if(userAction){ restart(); }   /* riparte il conto alla rovescia dopo un'azione manuale */
-    }
-    function next(){ show(idx + 1); }
-
-    function start(){ stop(); timer = setInterval(next, INTERVAL); }
-    function stop(){ if(timer){ clearInterval(timer); timer = null; } }
-    function restart(){ start(); }
-
-    prevBtn.addEventListener('click', function(){ go(idx - 1, true); });
-    nextBtn.addEventListener('click', function(){ go(idx + 1, true); });
-
-    /* pausa al passaggio del mouse (desktop) */
-    root.addEventListener('mouseenter', stop);
-    root.addEventListener('mouseleave', start);
-
-    /* swipe col dito (mobile) */
-    var sx = 0, sy = 0, swiping = false;
-    root.addEventListener('touchstart', function(e){
-      sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiping = true; stop();
-    }, {passive:true});
-    root.addEventListener('touchend', function(e){
-      if(!swiping) return; swiping = false;
-      var dx = e.changedTouches[0].clientX - sx;
-      var dy = e.changedTouches[0].clientY - sy;
-      if(Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)){
-        go(dx < 0 ? idx + 1 : idx - 1, true);
-      } else {
-        start();
-      }
-    }, {passive:true});
-
-    /* non far scorrere quando la scheda non è visibile */
-    document.addEventListener('visibilitychange', function(){
-      if(document.hidden){ stop(); } else { start(); }
-    });
-
-    show(0);
-    start();
   })();
   </script>
 </body>
