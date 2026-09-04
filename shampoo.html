@@ -8,7 +8,19 @@
 <style>
   /* ===== pagina Shampoo: riquadro statico (pagina 12 della brochure) ===== */
   .shampoo-main{ background:#ffffff; font-size:0; }
-  .shampoo-img{ display:block; width:100%; height:auto; }
+  .shampoo-img{ display:block; width:100%; height:auto; cursor:zoom-in; }
+
+  /* ===== lightbox: al clic ingrandisce un'immagine al centro dello schermo ===== */
+  .prod-overlay{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    background:rgba(0,0,0,.55); z-index:1000; cursor:zoom-out;
+  }
+  .prod-overlay.show{ display:flex; }
+  .prod-overlay img{
+    max-width:82vw; max-height:82vh; object-fit:contain;
+    border-radius:8px; box-shadow:0 10px 34px rgba(0,0,0,.5); background:#fff;
+  }
 </style>
 </head>
 <body>
@@ -17,7 +29,8 @@
     <div id="site-header" data-title="SHAMPOO" data-active="products"></div>
 
     <main class="shampoo-main">
-      <img class="shampoo-img" src="images/shampoo.jpg" alt="Artic Blond Shampoo">
+      <img class="shampoo-img" id="shampooImg" src="images/shampoo.jpg" alt="Artic Blond Shampoo"
+           data-zoom="images/shampoo-zoom.jpg">
     </main>
 
     <div id="site-footer"></div>
@@ -25,5 +38,31 @@
   </div>
 
   <script src="site.js"></script>
+
+  <!-- lightbox per l'ingrandimento dell'immagine -->
+  <div class="prod-overlay" id="shampooOverlay"><img alt="Artic Blond Shampoo"></div>
+
+  <script>
+  /* Clic sul riquadro -> apre l'immagine ingrandita al centro dello schermo.
+     Clic sullo sfondo scuro (o tasto Esc) -> chiude. */
+  (function(){
+    var img     = document.getElementById('shampooImg');
+    var overlay = document.getElementById('shampooOverlay');
+    if(!img || !overlay) return;
+    var overlayImg = overlay.querySelector('img');
+
+    function open(){
+      overlayImg.src = img.getAttribute('data-zoom');
+      overlay.classList.add('show');
+    }
+    function close(){ overlay.classList.remove('show'); }
+
+    img.addEventListener('click', open);
+    overlay.addEventListener('click', close);
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape') close();
+    });
+  })();
+  </script>
 </body>
 </html>
