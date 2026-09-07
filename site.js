@@ -93,6 +93,7 @@
     '<footer><div class="footer-card">' +
       '<div class="addr"><b>COLORDESIGN s.r.l.</b> - Via caduti del Lavoro, 9 - 25082 Botticino (Bs) - Italy www.colordesign.bs.it</div>' +
       '<div class="made">MADE IN ITALY</div>' +
+      '<a class="flink" href="#contact-us">CONTACT US</a>' +
       '<a class="flink" href="#legal-notices">LEGAL NOTICES</a>' +
       '<a class="flink" href="#follow-us">FOLLOW US</a>' +
       '<a class="flink" href="#support">SUPPORT</a>' +
