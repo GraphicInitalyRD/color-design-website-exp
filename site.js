@@ -74,7 +74,7 @@
           '<div class="submenu" id="productsSub">' +
             '<a href="hair-color-cream.html">Hair Color Cream</a>' +
             '<a href="peroxides-activators.html">Peroxides &amp; Activators</a>' +
-            '<a href="shampoo.html">Shampoo</a>' +
+            '<a href="shampoo.html">Blond Artic Shampoo</a>' +
             '<a href="bleach.html">Bleach</a>' +
             '<a href="reconstruction-line.html">Reconstruction Line</a>' +
             '<a href="styling-treatments.html">Styling Treatments</a>' +
