@@ -95,7 +95,13 @@
       '<div class="made">MADE IN ITALY</div>' +
       '<a class="flink" href="#contact-us">CONTACT US</a>' +
       '<a class="flink" href="#legal-notices">LEGAL NOTICES</a>' +
-      '<a class="flink" href="#follow-us">FOLLOW US</a>' +
+      '<a class="flink" id="followToggle" href="#follow-us" role="button" aria-expanded="false" aria-controls="socialRow">FOLLOW US</a>' +
+      '<div class="social-row" id="socialRow">' +
+        '<a class="social-ico" href="#" aria-label="Facebook"><img src="images/social-facebook.png" alt="Facebook"></a>' +
+        '<a class="social-ico" href="#" aria-label="Instagram"><img src="images/social-instagram.png" alt="Instagram"></a>' +
+        '<a class="social-ico" href="#" aria-label="LinkedIn"><img src="images/social-linkedin.png" alt="LinkedIn"></a>' +
+        '<a class="social-ico" href="#" aria-label="TikTok"><img src="images/social-tiktok.png" alt="TikTok"></a>' +
+      '</div>' +
       '<a class="flink" href="#support">SUPPORT</a>' +
     '</div></footer>';
 
@@ -128,6 +134,17 @@
       var isOpen = sub.classList.toggle('open');
       pToggle.classList.toggle('open', isOpen);
       pToggle.setAttribute('aria-expanded', isOpen);
+    });
+  }
+
+  /* pannello FOLLOW US: mostra/nasconde la riga delle icone social */
+  var fToggle = document.getElementById('followToggle');
+  var sRow = document.getElementById('socialRow');
+  if (fToggle && sRow) {
+    fToggle.addEventListener('click', function(e){
+      e.preventDefault();
+      var isOpen = sRow.classList.toggle('open');
+      fToggle.setAttribute('aria-expanded', isOpen);
     });
   }
 })();
