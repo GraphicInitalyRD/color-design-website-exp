@@ -165,7 +165,7 @@
 
   /* radial layout of text (measured inward from the rim) */
   var CODE_FONT=15, NAME_FONT=9;
-  var CODE_ROT_WIN=-20*Math.PI/180;  // codice dello spicchio vincente (tra le frecce): ruotato 20° antiorari sul proprio centro, stessa dimensione
+  var CODE_ROT_WIN=20*Math.PI/180;  // ampiezza (rad) della rotazione del codice del vincente; il SEGNO dipende dal verso di rotazione della ruota
   var CODE_OFF=26;          // code centre = R - CODE_OFF (near the rim / arrow) — dimensione INVARIATA
   var CODE_MAXLEN=44;       // code kept inside its own band near the rim
   var NAME_START=72;        // first (outermost, ES) name centre = R - NAME_START
@@ -185,6 +185,8 @@
   /* ====== State / physics ====== */
   var rot = -SLICE*0.5;
   var vel = 0;
+  var prevRot = rot;   // rotazione al frame precedente (per ricavare il verso)
+  var spinSign = 1;    // verso della ruota: +1 orario (rot cresce), -1 antiorario
   var dragging = false;
   var awaitingResult = false;
   var lastPointerAngle = 0, lastMoveTime = 0;
@@ -243,6 +245,11 @@
   function draw(){
     ctx.clearRect(0,0,W,H);
     var winner = winnerIndex(rot);
+    // verso di rotazione della ruota dal movimento reale tra due frame
+    // (mantiene l'ultimo verso quando la ruota e' ferma)
+    var dRot = rot - prevRot; prevRot = rot;
+    if(dRot > 1e-4) spinSign = 1;        // ruota in senso orario
+    else if(dRot < -1e-4) spinSign = -1; // ruota in senso antiorario
     // angular half-width of the visible top cap (+ margin) -> only label these wedges
     var capHalf = Math.asin(Math.min(1,(W*0.62)/R)) + 0.06;
 
@@ -274,9 +281,10 @@
         var rc = R - NAME_START - (5-k)*NAME_STEP;   // ES nearest the code, IT innermost
         radialWord(s.names[k], rc, "500 "+NAME_FONT+"px 'Helvetica Neue', Arial, sans-serif", s.ink, NAME_MAXLEN);
       }
-      // code nearest the rim (nearest the arrow) — per lo spicchio vincente (tra le frecce) ruota 20° orari sul proprio centro, stessa dimensione
+      // code nearest the rim (nearest the arrow) — per lo spicchio vincente (tra le frecce): ruota 20° sul proprio centro
+      // ruota ORARIA -> codice ANTIORARIO (-20); ruota ANTIORARIA -> codice ORARIO (+20)
       var isWin = (i===winner);
-      radialWord(s.code, R-CODE_OFF, "700 "+CODE_FONT+"px 'Helvetica Neue', Arial, sans-serif", s.ink, CODE_MAXLEN, isWin?CODE_ROT_WIN:0);
+      radialWord(s.code, R-CODE_OFF, "700 "+CODE_FONT+"px 'Helvetica Neue', Arial, sans-serif", s.ink, CODE_MAXLEN, isWin?(-spinSign*CODE_ROT_WIN):0);
       ctx.restore();
     }
 
