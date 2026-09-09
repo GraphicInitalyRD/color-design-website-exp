@@ -165,6 +165,7 @@
 
   /* radial layout of text (measured inward from the rim) */
   var CODE_FONT=15, NAME_FONT=9;
+  var CODE_ROT_WIN=-20*Math.PI/180;  // codice dello spicchio vincente (tra le frecce): ruotato 20° antiorari sul proprio centro, stessa dimensione
   var CODE_OFF=26;          // code centre = R - CODE_OFF (near the rim / arrow) — dimensione INVARIATA
   var CODE_MAXLEN=44;       // code kept inside its own band near the rim
   var NAME_START=72;        // first (outermost, ES) name centre = R - NAME_START
@@ -207,12 +208,13 @@
   }
 
   /* draw one word radially, centred at radius rc, condensed to fit maxLen */
-  function radialWord(text, rc, font, ink, maxLen){
+  function radialWord(text, rc, font, ink, maxLen, extraRot){
     ctx.font = font;
     var lw = ctx.measureText(text).width;
     var sx = (lw>maxLen) ? maxLen/lw : 1;
     ctx.save();
     ctx.translate(rc, 0);          // already rotated to the slice mid-angle
+    if(extraRot) ctx.rotate(extraRot);   // rotazione extra attorno al centro del testo (per il codice del vincente)
     if(sx<1) ctx.scale(sx,1);
     ctx.fillStyle = ink;
     ctx.textAlign = "center";
@@ -272,8 +274,9 @@
         var rc = R - NAME_START - (5-k)*NAME_STEP;   // ES nearest the code, IT innermost
         radialWord(s.names[k], rc, "500 "+NAME_FONT+"px 'Helvetica Neue', Arial, sans-serif", s.ink, NAME_MAXLEN);
       }
-      // code nearest the rim (nearest the arrow)
-      radialWord(s.code, R-CODE_OFF, "700 "+CODE_FONT+"px 'Helvetica Neue', Arial, sans-serif", s.ink, CODE_MAXLEN);
+      // code nearest the rim (nearest the arrow) — per lo spicchio vincente (tra le frecce) ruota 20° orari sul proprio centro, stessa dimensione
+      var isWin = (i===winner);
+      radialWord(s.code, R-CODE_OFF, "700 "+CODE_FONT+"px 'Helvetica Neue', Arial, sans-serif", s.ink, CODE_MAXLEN, isWin?CODE_ROT_WIN:0);
       ctx.restore();
     }
 
